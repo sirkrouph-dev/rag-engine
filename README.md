@@ -1,10 +1,14 @@
 # RAG Engine
 
-A modular, highly customizable framework for building Retrieval-Augmented Generation (RAG) pipelines using configuration-as-code.
+A powerful, modular framework for building advanced Retrieval-Augmented Generation (RAG) pipelines using configuration-as-code. Combining state-of-the-art retrieval algorithms with multiple vector databases and LLM providers.
+
+> **Note:** This project is currently a Work in Progress (WIP). Features and documentation are being actively developed and may change.
+>
+> _Built with ❤️ and GitHub Copilot - Transforming vision into code._
 
 ## 🚀 Overview
 
-RAG Engine is a plug-n-play framework that lets you customize every step of the RAG pipeline — from document loading to prompt engineering and LLM integration. Built with modularity in mind, it supports multiple interfaces (CLI, API, UI) and is designed for extensibility with a plugin system.
+A powerful, modular framework for building advanced Retrieval-Augmented Generation (RAG) pipelines using configuration-as-code. Combining state-of-the-art retrieval algorithms with multiple vector databases and LLM providers.
 
 ## ✨ Features
 
@@ -13,6 +17,12 @@ RAG Engine is a plug-n-play framework that lets you customize every step of the 
 - **Multiple Document Types**: Support for TXT, PDF, DOCX, and HTML documents
 - **Advanced Chunking**: Fixed-size, sentence-based, semantic, and recursive chunking strategies
 - **Flexible Embeddings**: OpenAI, Google Gemini/Vertex, SentenceTransformers
+- **Comprehensive Retrieval Strategies**:
+  - Basic: Simple similarity, threshold filtering, MMR, hybrid search
+  - Advanced: Contextual compression, multi-query expansion, hierarchical retrieval
+- **Multiple Vector Stores**:
+  - Local: FAISS, ChromaDB, PostgreSQL (pgVector)
+  - Cloud: Pinecone, Qdrant
 - **Flexible LLM Support**:
   - Cloud providers: OpenAI GPT models, Google Gemini
   - Local models: Phi-3, Gemma, and any model via Ollama
@@ -23,7 +33,7 @@ RAG Engine is a plug-n-play framework that lets you customize every step of the 
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/rag-engine.git
+git clone https://github.com/sirkrouph-dev/rag-engine.git
 cd rag-engine
 
 # Create a virtual environment
@@ -61,13 +71,15 @@ pip install qdrant-client  # For Qdrant
     "model": "text-embedding-3-small",
     "api_key": "${OPENAI_API_KEY}"
   },  "vectorstore": {
-    "provider": "faiss",  // Options: faiss, chroma, postgres, pinecone, qdrant
+    "provider": "chroma",  // Options: faiss, chroma, postgres, pinecone, qdrant
     "persist_directory": "./vector_store",
-    "index_type": "Flat",
+    "collection_name": "rag_docs",
     "metric": "cosine"
   },
   "retrieval": {
-    "top_k": 4
+    "retrieval_strategy": "multi_query",  // simple, mmr, hybrid, compression, etc.
+    "top_k": 4,
+    "num_query_variations": 3
   },
   "prompting": {
     "system_prompt": "You are a technical assistant. Answer clearly and concisely based on the provided context."
@@ -315,6 +327,64 @@ Combine multiple retrieval strategies:
 }
 ```
 
+### Advanced Retrieval Methods
+
+RAG Engine also offers more sophisticated retrieval approaches:
+
+#### Contextual Compression
+
+Retrieves larger chunks first, then compresses them to the most relevant parts:
+
+```json
+{
+  "retrieval": {
+    "retrieval_strategy": "compression",
+    "top_k": 5
+  }
+}
+```
+
+#### Multi-Query Retrieval
+
+Generates multiple variations of the query to improve recall:
+
+```json
+{
+  "retrieval": {
+    "retrieval_strategy": "multi_query",
+    "top_k": 5,
+    "num_query_variations": 3
+  }
+}
+```
+
+#### Hierarchical Retrieval
+
+Two-stage retrieval process that first identifies relevant topics/clusters:
+
+```json
+{
+  "retrieval": {
+    "retrieval_strategy": "hierarchical",
+    "top_k": 5,
+    "num_clusters": 3
+  }
+}
+```
+
+#### Parent Document Retrieval
+
+Retrieves smaller chunks but returns their parent documents:
+
+```json
+{
+  "retrieval": {
+    "retrieval_strategy": "parent_document",
+    "top_k": 5
+  }
+}
+```
+
 ## �📊 Vector Store Options
 
 RAG Engine supports multiple vector store providers for flexibility in different deployment scenarios:
@@ -478,15 +548,33 @@ Local Qdrant:
 
 ## 🧩 Architecture
 
-RAG Engine is built with a modular architecture:
+RAG Engine uses a pipeline architecture where each component is modular and configurable:
+
+```
+┌───────────────┐     ┌───────────────┐     ┌───────────────┐     ┌───────────────┐
+│   Documents   │     │    Chunking   │     │   Embedding   │     │  Vector Store │
+│  PDF/TXT/HTML │ ──> │ Fixed/Semantic│ ──> │ OpenAI/Local  │ ──> │ FAISS/Chroma  │
+└───────────────┘     └───────────────┘     └───────────────┘     └───────┬───────┘
+                                                                          │
+┌───────────────┐     ┌───────────────┐     ┌───────────────┐     ┌───────▼───────┐
+│    Output     │     │      LLM      │     │   Prompting   │     │   Retrieval   │
+│ Console/API/UI│ <── │ OpenAI/Local  │ <── │ Templates     │ <── │ MMR/MultiQuery│
+└───────────────┘     └───────────────┘     └───────────────┘     └───────────────┘
+```
+
+### Component Overview
 
 - **Loaders**: PDF, DOCX, TXT, HTML
 - **Chunkers**: Fixed-size, sentence-based, semantic, recursive
 - **Embedders**: OpenAI, Gemini/Vertex, SentenceTransformers
 - **Vector Stores**: FAISS, ChromaDB, PostgreSQL/pgVector, Pinecone, Qdrant
-- **Retrievers**: Simple similarity, MMR, hybrid search, reranker, ensemble
+- **Retrievers**: 
+  - Basic: Simple similarity, MMR, hybrid search, reranker, ensemble
+  - Advanced: Contextual compression, multi-query, hierarchical, parent document
 - **LLMs**: OpenAI, Gemini, local models (Phi-3, Gemma, via Transformers or Ollama)
 - **Interfaces**: CLI, API *(coming soon)*, UI *(coming soon)*
+
+Each component can be configured independently through your config file, allowing for maximum flexibility.
 
 ## 🧪 Extending RAG Engine
 
@@ -514,10 +602,22 @@ LOADER_REGISTRY["my_format"] = MyCustomLoader()
 
 - [x] Complete Vector Store implementation (FAISS, ChromaDB, pgVector, Pinecone, Qdrant)
 - [x] Retriever strategies (simple, MMR, hybrid, reranker, etc.)
+- [x] Advanced retrieval algorithms (contextual compression, multi-query, hierarchical)
 - [ ] FastAPI server
 - [ ] Streamlit/Gradio interface
-- [ ] Evaluation metrics
-- [ ] Pipeline versioning
+- [ ] Evaluation metrics and benchmarking tools
+- [ ] Pipeline versioning and experiment tracking
+
+## 🚀 Getting Started
+
+To get started with RAG Engine:
+
+1. **Basic Usage**: Follow the Quick Start guide above
+2. **Custom Components**: Explore the plugin system in `rag_engine/plugins/`
+3. **Advanced Retrieval**: Try different retrieval strategies in your config
+4. **Local LLMs**: For privacy and lower costs, configure a local model with Ollama
+
+Check out the `examples/` directory for more detailed usage scenarios.
 
 ## 📝 License
 
