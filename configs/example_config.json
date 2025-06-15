@@ -5,7 +5,12 @@
   "chunking": { "method": "recursive", "max_tokens": 512, "overlap": 50 },
   "embedding": { "model": "openai", "api_key": "${OPENAI_API_KEY}" },
   "vectorstore": { "provider": "chroma", "persist_directory": "./vector_store" },
-  "retrieval": { "top_k": 4 },
+  "retrieval": { 
+    "retrieval_strategy": "mmr", 
+    "top_k": 4,
+    "fetch_k": 15,
+    "lambda_param": 0.7
+  },
   "prompting": { "system_prompt": "You are a technical assistant. Answer clearly and concisely." },
   "llm": { "provider": "openai", "model": "gpt-4", "temperature": 0.3 },
   "output": { "method": "console" }
