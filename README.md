@@ -22,7 +22,7 @@ RAG Engine is a plug-n-play framework that lets you customize every step of the 
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/rag-engine.git
+git clone https://github.com/sirkrouph-dev/rag-engine.git
 cd rag-engine
 
 # Create a virtual environment
