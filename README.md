@@ -194,7 +194,128 @@ RAG Engine supports multiple embedding providers:
 }
 ```
 
-## 📊 Vector Store Options
+## � Retrieval Strategies
+
+RAG Engine offers multiple retrieval strategies to improve the quality and relevance of results:
+
+### Simple Similarity Search
+
+Basic vector similarity search, great for straightforward use cases:
+
+```json
+{
+  "retrieval": {
+    "retrieval_strategy": "simple",
+    "top_k": 5
+  }
+}
+```
+
+### Threshold Retriever
+
+Only retrieve documents above a similarity threshold:
+
+```json
+{
+  "retrieval": {
+    "retrieval_strategy": "threshold",
+    "top_k": 10,
+    "similarity_threshold": 0.75
+  }
+}
+```
+
+### Maximum Marginal Relevance (MMR)
+
+Balance relevance with diversity in results:
+
+```json
+{
+  "retrieval": {
+    "retrieval_strategy": "mmr",
+    "top_k": 5,
+    "fetch_k": 20,
+    "lambda_param": 0.7  // Higher values favor relevance over diversity
+  }
+}
+```
+
+### Hybrid Search
+
+Combine dense vector search with keyword search for better results:
+
+```json
+{
+  "retrieval": {
+    "retrieval_strategy": "hybrid",
+    "top_k": 5,
+    "alpha": 0.7  // Weight for vector search vs keyword search
+  }
+}
+```
+
+### Reranker
+
+Retrieve more candidates and rerank them:
+
+```json
+{
+  "retrieval": {
+    "retrieval_strategy": "rerank",
+    "top_k": 5,
+    "fetch_k": 20
+  }
+}
+```
+
+### Self-Query
+
+Extract filters from the query to improve precision:
+
+```json
+{
+  "retrieval": {
+    "retrieval_strategy": "self_query",
+    "top_k": 5,
+    "metadata_schema": {
+      "category": "string",
+      "date": "string",
+      "author": "string"
+    }
+  }
+}
+```
+
+### Deduplication
+
+Remove redundant or near-duplicate results:
+
+```json
+{
+  "retrieval": {
+    "retrieval_strategy": "dedup",
+    "top_k": 5,
+    "fetch_k": 15,
+    "similarity_threshold": 0.85
+  }
+}
+```
+
+### Ensemble Retrieval
+
+Combine multiple retrieval strategies:
+
+```json
+{
+  "retrieval": {
+    "retrieval_strategy": "ensemble",
+    "top_k": 5,
+    "strategy_weights": [0.7, 0.3]  // Weights for different strategies
+  }
+}
+```
+
+## �📊 Vector Store Options
 
 RAG Engine supports multiple vector store providers for flexibility in different deployment scenarios:
 
@@ -363,6 +484,7 @@ RAG Engine is built with a modular architecture:
 - **Chunkers**: Fixed-size, sentence-based, semantic, recursive
 - **Embedders**: OpenAI, Gemini/Vertex, SentenceTransformers
 - **Vector Stores**: FAISS, ChromaDB, PostgreSQL/pgVector, Pinecone, Qdrant
+- **Retrievers**: Simple similarity, MMR, hybrid search, reranker, ensemble
 - **LLMs**: OpenAI, Gemini, local models (Phi-3, Gemma, via Transformers or Ollama)
 - **Interfaces**: CLI, API *(coming soon)*, UI *(coming soon)*
 
@@ -391,7 +513,7 @@ LOADER_REGISTRY["my_format"] = MyCustomLoader()
 ## 🔄 Development Roadmap
 
 - [x] Complete Vector Store implementation (FAISS, ChromaDB, pgVector, Pinecone, Qdrant)
-- [ ] Retriever strategies (top-k, MMR, filters)
+- [x] Retriever strategies (simple, MMR, hybrid, reranker, etc.)
 - [ ] FastAPI server
 - [ ] Streamlit/Gradio interface
 - [ ] Evaluation metrics
