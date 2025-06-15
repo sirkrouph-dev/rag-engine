@@ -572,6 +572,7 @@ class DefaultRetriever(BaseRetriever):
     def __init__(self):
         """Initialize with available retrieval strategies."""
         self.strategies = {
+            # Basic strategies
             "simple": SimpleRetriever(),
             "threshold": ThresholdRetriever(),
             "mmr": MMRRetriever(),
@@ -579,7 +580,13 @@ class DefaultRetriever(BaseRetriever):
             "ensemble": EnsembleRetriever(),
             "rerank": RerankerRetriever(),
             "self_query": SelfQueryRetriever(),
-            "dedup": DedupRetriever()
+            "dedup": DedupRetriever(),
+            
+            # Advanced strategies
+            "compression": ContextualCompressionRetriever(),
+            "multi_query": MultiQueryRetriever(),
+            "hierarchical": HierarchicalRetriever(),
+            "parent_document": ParentDocumentRetriever()
         }
         
         # Default strategy
@@ -615,3 +622,457 @@ class DefaultRetriever(BaseRetriever):
 def get_retriever(config: Dict[str, Any]) -> BaseRetriever:
     """Get a retriever based on configuration."""
     return DefaultRetriever()
+
+
+class ContextualCompressionRetriever(RetrieverStrategy):
+    """Retriever that compresses the context by extracting only relevant parts of documents."""
+    
+    def __init__(self, base_strategy: RetrieverStrategy = None, llm_provider = None):
+        """Initialize with base strategy and LLM for compression."""
+        self.base_strategy = base_strategy or SimpleRetriever()
+        self.llm_provider = llm_provider
+    
+    def _compress_document(self, query: str, document: Dict[str, Any]) -> Dict[str, Any]:
+        """Extract only the relevant parts of a document given the query."""
+        content = document.get("document", {}).get("content", "")
+        if not content:
+            return document
+            
+        # If no LLM provided, use a simple extractive approach
+        if not self.llm_provider:
+            return self._simple_compression(query, document)
+            
+        # Use LLM for compression
+        system_prompt = """
+        You are an expert at extracting only the most relevant information from text.
+        Given a query and a document, extract ONLY the sentences or paragraphs that are directly relevant to the query.
+        Maintain the original phrasing where possible. Be concise but complete - include all relevant information.
+        """
+        
+        try:
+            compressed_content = self.llm_provider.generate(
+                prompt={
+                    "system": system_prompt,
+                    "user": f"Query: {query}\n\nDocument: {content}"
+                },
+                config={"temperature": 0.1, "max_tokens": 500}
+            )
+            
+            # Create a new document with compressed content
+            compressed_doc = document.copy()
+            if "document" in compressed_doc and isinstance(compressed_doc["document"], dict):
+                compressed_doc["document"] = compressed_doc["document"].copy()
+                compressed_doc["document"]["content"] = compressed_content
+                compressed_doc["document"]["compressed"] = True
+            
+            return compressed_doc
+            
+        except Exception as e:
+            logger.error(f"Error in LLM compression: {e}")
+            return document
+    
+    def _simple_compression(self, query: str, document: Dict[str, Any]) -> Dict[str, Any]:
+        """Simple extractive compression without using an LLM."""
+        content = document.get("document", {}).get("content", "")
+        if not content:
+            return document
+            
+        # Split into sentences or paragraphs
+        import re
+        sentences = re.split(r'(?<=[.!?])\s+', content)
+        
+        # Simple relevance scoring based on term overlap
+        query_terms = set(query.lower().split())
+        relevant_sentences = []
+        
+        for sentence in sentences:
+            sentence_terms = set(sentence.lower().split())
+            overlap = len(query_terms.intersection(sentence_terms))
+            
+            # Include sentences with term overlap or neighboring sentences for context
+            if overlap > 0 or (relevant_sentences and len(relevant_sentences[-1].split()) < 20):
+                relevant_sentences.append(sentence)
+        
+        # Fall back to original content if no relevant sentences found
+        compressed_content = " ".join(relevant_sentences) if relevant_sentences else content
+        
+        # Create a new document with compressed content
+        compressed_doc = document.copy()
+        if "document" in compressed_doc and isinstance(compressed_doc["document"], dict):
+            compressed_doc["document"] = compressed_doc["document"].copy()
+            compressed_doc["document"]["content"] = compressed_content
+            compressed_doc["document"]["compressed"] = True
+        
+        return compressed_doc
+    
+    def retrieve(self, vectorstore: Any, query_embedding: List[float], query: str, config: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Retrieve documents and compress them to their relevant parts."""
+        # Get initial results with base strategy
+        initial_results = self.base_strategy.retrieve(vectorstore, query_embedding, query, config)
+        
+        # Compress each document
+        compressed_results = [self._compress_document(query, doc) for doc in initial_results]
+        
+        logger.info(f"Retrieved and compressed {len(compressed_results)} documents")
+        return compressed_results
+
+
+class MultiQueryRetriever(RetrieverStrategy):
+    """Retriever that generates multiple query variations to improve recall."""
+    
+    def __init__(self, base_strategy: RetrieverStrategy = None, llm_provider = None):
+        """Initialize with base strategy and LLM for query generation."""
+        self.base_strategy = base_strategy or SimpleRetriever()
+        self.llm_provider = llm_provider
+    
+    def _generate_query_variations(self, original_query: str, num_variations: int = 3) -> List[str]:
+        """Generate variations of the original query using an LLM."""
+        if not self.llm_provider:
+            # If no LLM provided, use simple rule-based variations
+            return self._simple_query_variations(original_query, num_variations)
+            
+        # Use LLM to generate variations
+        system_prompt = f"""
+        You are an expert at creating alternative versions of search queries to improve search results.
+        Given a query, generate {num_variations} alternative queries that:
+        1. Rephrase the original query using different words
+        2. Use synonyms for key terms
+        3. Expand or narrow the scope slightly
+        4. Adjust the specificity
+        
+        Return ONLY the alternative queries, one per line, without numbering or explanation.
+        """
+        
+        try:
+            response = self.llm_provider.generate(
+                prompt={
+                    "system": system_prompt,
+                    "user": f"Original query: {original_query}"
+                },
+                config={"temperature": 0.7, "max_tokens": 250}
+            )
+            
+            # Parse the response into individual queries
+            variations = [q.strip() for q in response.split('\n') if q.strip()]
+            
+            # Remove duplicates and ensure we have the original query
+            unique_variations = list(set(variations + [original_query]))
+            return unique_variations[:num_variations + 1]  # Limit to requested number + original
+            
+        except Exception as e:
+            logger.error(f"Error generating query variations: {e}")
+            return [original_query]
+    
+    def _simple_query_variations(self, query: str, num_variations: int = 3) -> List[str]:
+        """Generate simple variations of the query without using an LLM."""
+        variations = [query]  # Always include original query
+        
+        # Basic synonym replacements
+        common_synonyms = {
+            "how": ["what way", "what method", "in what manner"],
+            "create": ["make", "build", "develop", "produce"],
+            "best": ["top", "optimal", "greatest", "ideal"],
+            "important": ["crucial", "essential", "significant", "key"],
+            "difference": ["distinction", "contrast", "disparity", "variation"],
+            "example": ["instance", "sample", "illustration", "case"],
+            "method": ["approach", "technique", "procedure", "process"],
+            "problem": ["issue", "challenge", "difficulty", "concern"],
+            "solution": ["answer", "resolution", "fix", "remedy"]
+        }
+        
+        query_words = query.lower().split()
+        
+        # Try word substitutions
+        for i, word in enumerate(query_words):
+            if word in common_synonyms and len(variations) <= num_variations:
+                for synonym in common_synonyms[word][:2]:  # Limit to 2 synonyms per word
+                    new_query = query_words.copy()
+                    new_query[i] = synonym
+                    variations.append(" ".join(new_query))
+                    if len(variations) >= num_variations + 1:
+                        break
+        
+        return variations[:num_variations + 1]  # Limit to requested number + original
+    
+    def _embed_queries(self, queries: List[str], embedder: Any, embed_config: Dict[str, Any]) -> List[List[float]]:
+        """Embed multiple queries."""
+        return [embedder.embed_query(query, embed_config) for query in queries]
+    
+    def retrieve(self, vectorstore: Any, query_embedding: List[float], query: str, config: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Retrieve documents using multiple query variations."""
+        num_variations = config.get("num_query_variations", 3)
+        top_k = config.get("top_k", 5)
+        
+        # Get embedder from config
+        embedder = config.get("embedder")
+        if not embedder:
+            logger.warning("No embedder provided for multi-query retrieval, using original query only")
+            return self.base_strategy.retrieve(vectorstore, query_embedding, query, config)
+            
+        # Generate query variations
+        queries = self._generate_query_variations(query, num_variations)
+        logger.info(f"Generated {len(queries)} query variations: {queries}")
+        
+        # Embed all queries
+        query_embeddings = self._embed_queries(queries, embedder, config.get("embedding_config", {}))
+        
+        # Retrieve documents for each query
+        all_results = []
+        for i, (q, q_embed) in enumerate(zip(queries, query_embeddings)):
+            # Adjust top_k to avoid retrieving too many documents
+            query_config = dict(config)
+            query_config["top_k"] = min(top_k, 10)
+            
+            # Get results for this query variation
+            results = self.base_strategy.retrieve(vectorstore, q_embed, q, query_config)
+            
+            # Add query info to results
+            for doc in results:
+                doc["query_variation"] = q
+                
+            all_results.extend(results)
+        
+        # Deduplicate results by document ID
+        unique_results = {}
+        for doc in all_results:
+            doc_id = doc["id"]
+            if doc_id not in unique_results or doc.get("score", 0) > unique_results[doc_id].get("score", 0):
+                unique_results[doc_id] = doc
+                
+        # Sort by score and return top_k
+        final_results = sorted(
+            unique_results.values(), 
+            key=lambda x: x.get("score", 0), 
+            reverse=True
+        )[:top_k]
+        
+        logger.info(f"Retrieved {len(final_results)} unique documents using multi-query approach")
+        return final_results
+
+
+class HierarchicalRetriever(RetrieverStrategy):
+    """Two-stage retriever that first identifies relevant clusters/topics, then retrieves specific documents."""
+    
+    def __init__(self, base_strategy: RetrieverStrategy = None):
+        """Initialize with base strategy."""
+        self.base_strategy = base_strategy or SimpleRetriever()
+        self.topic_index = None
+        self.document_clusters = {}
+    
+    def _build_topic_index(self, vectorstore: Any, config: Dict[str, Any]) -> None:
+        """Build a topic/cluster index if not already built."""
+        if self.topic_index is not None:
+            return
+            
+        try:
+            # Check if vectorstore has clustering capability
+            if hasattr(vectorstore, "get_clusters"):
+                clusters = vectorstore.get_clusters(config.get("num_clusters", 10))
+                self.topic_index = clusters
+                return
+                
+            # If not, we'll implement a simple clustering approach
+            # This requires getting all documents - could be expensive
+            if not hasattr(vectorstore, "get_all"):
+                logger.warning("Vectorstore doesn't support clustering or get_all. Hierarchical retrieval disabled.")
+                return
+                
+            # Get all documents
+            all_docs = vectorstore.get_all(include_embeddings=True)
+            if not all_docs or not all_docs[0].get("document", {}).get("embedding"):
+                logger.warning("Could not get document embeddings for clustering")
+                return
+                
+            # Simple k-means clustering
+            from sklearn.cluster import KMeans
+            import numpy as np
+            
+            embeddings = [doc["document"]["embedding"] for doc in all_docs]
+            embeddings_np = np.array(embeddings)
+            
+            # Determine number of clusters
+            num_clusters = min(config.get("num_clusters", 10), len(embeddings) // 5)
+            if num_clusters < 2:
+                num_clusters = 2
+                
+            # Perform clustering
+            kmeans = KMeans(n_clusters=num_clusters, random_state=42)
+            clusters = kmeans.fit_predict(embeddings_np)
+            
+            # Group documents by cluster
+            for i, cluster_id in enumerate(clusters):
+                if cluster_id not in self.document_clusters:
+                    self.document_clusters[cluster_id] = []
+                self.document_clusters[cluster_id].append(all_docs[i])
+                
+            # Create topic index with cluster centroids
+            self.topic_index = kmeans.cluster_centers_
+            
+        except Exception as e:
+            logger.error(f"Error building hierarchical index: {e}")
+            self.topic_index = None
+    
+    def retrieve(self, vectorstore: Any, query_embedding: List[float], query: str, config: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Retrieve documents using a two-stage hierarchical approach."""
+        top_k = config.get("top_k", 5)
+        
+        # Try to build topic index if not already built
+        self._build_topic_index(vectorstore, config)
+        
+        # If topic index building failed, fall back to base strategy
+        if self.topic_index is None:
+            logger.warning("Using base strategy as fallback for hierarchical retrieval")
+            return self.base_strategy.retrieve(vectorstore, query_embedding, query, config)
+            
+        # Two approaches depending on what we have:
+        if hasattr(vectorstore, "get_clusters"):
+            # If vectorstore has native clustering support
+            # First retrieve relevant clusters
+            relevant_clusters = vectorstore.query_clusters(
+                query_embedding, 
+                config.get("num_clusters", 3)
+            )
+            
+            # Then retrieve documents from those clusters
+            cluster_filter = {"cluster_ids": [c["id"] for c in relevant_clusters]}
+            query_config = dict(config)
+            query_config["filters"] = cluster_filter
+            
+            return vectorstore.query(query_embedding, query_config)
+            
+        else:
+            # Using our simple clustering implementation
+            # Find closest clusters to query
+            import numpy as np
+            query_np = np.array(query_embedding)
+            
+            # Calculate distance to each cluster centroid
+            distances = []
+            for cluster_id, centroid in enumerate(self.topic_index):
+                dist = np.linalg.norm(query_np - centroid)
+                distances.append((cluster_id, dist))
+                
+            # Sort clusters by distance
+            sorted_clusters = sorted(distances, key=lambda x: x[1])
+            top_clusters = [c[0] for c in sorted_clusters[:config.get("num_clusters", 3)]]
+            
+            # Collect documents from top clusters
+            cluster_docs = []
+            for cluster in top_clusters:
+                if cluster in self.document_clusters:
+                    cluster_docs.extend(self.document_clusters[cluster])
+                    
+            # Rerank documents based on similarity to query
+            scored_docs = []
+            for doc in cluster_docs:
+                if "embedding" in doc["document"]:
+                    doc_embedding = np.array(doc["document"]["embedding"])
+                    score = 1.0 / (1.0 + np.linalg.norm(query_np - doc_embedding))
+                    scored_docs.append((doc, score))
+                    
+            # Sort and return top_k documents
+            sorted_docs = sorted(scored_docs, key=lambda x: x[1], reverse=True)
+            results = []
+            
+            for doc, score in sorted_docs[:top_k]:
+                doc_copy = doc.copy()
+                doc_copy["score"] = score
+                results.append(doc_copy)
+                
+            logger.info(f"Retrieved {len(results)} documents via hierarchical clustering")
+            return results
+
+
+class ParentDocumentRetriever(RetrieverStrategy):
+    """Retriever that returns parent documents after retrieving child chunks."""
+    
+    def __init__(self, base_strategy: RetrieverStrategy = None):
+        """Initialize with base strategy."""
+        self.base_strategy = base_strategy or SimpleRetriever()
+    
+    def retrieve(self, vectorstore: Any, query_embedding: List[float], query: str, config: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Retrieve document chunks then return their parent documents."""
+        # Keep track of requested top_k
+        top_k = config.get("top_k", 5)
+        
+        # Modify config to request more chunks since we'll collapse to parents
+        chunk_config = dict(config)
+        chunk_config["top_k"] = top_k * 3  # Request more chunks to ensure diverse parents
+        
+        # Retrieve chunks with base strategy
+        chunk_results = self.base_strategy.retrieve(vectorstore, query_embedding, query, chunk_config)
+        
+        # Group by parent document ID if available
+        parent_docs = {}
+        for result in chunk_results:
+            doc = result["document"]
+            
+            # Look for parent ID - could be in different fields based on implementation
+            parent_id = None
+            for field in ["parent_id", "source_id", "file_id", "metadata.parent_id", "metadata.source"]:
+                parts = field.split(".")
+                value = doc
+                for part in parts:
+                    if isinstance(value, dict) and part in value:
+                        value = value[part]
+                    else:
+                        value = None
+                        break
+                
+                if value:
+                    parent_id = value
+                    break
+                    
+            # If no parent ID, use document ID as its own parent
+            if not parent_id:
+                parent_id = result["id"]
+                
+            # Calculate average score for each parent based on its chunks
+            if parent_id in parent_docs:
+                # Update existing parent with better score if available
+                if result.get("score", 0) > parent_docs[parent_id]["max_score"]:
+                    parent_docs[parent_id]["max_score"] = result.get("score", 0)
+                    
+                # Keep track of all chunk scores for this parent
+                parent_docs[parent_id]["scores"].append(result.get("score", 0))
+                
+                # Collect chunk contents for context
+                if "content" in doc:
+                    parent_docs[parent_id]["chunks"].append(doc["content"])
+                    
+            else:
+                # First time seeing this parent
+                parent_docs[parent_id] = {
+                    "id": parent_id,
+                    "max_score": result.get("score", 0),
+                    "scores": [result.get("score", 0)],
+                    "chunks": [doc.get("content", "")] if "content" in doc else [],
+                    "metadata": doc.get("metadata", {})
+                }
+                
+        # Sort parents by their highest chunk score
+        sorted_parents = sorted(
+            parent_docs.values(),
+            key=lambda x: x["max_score"],
+            reverse=True
+        )[:top_k]
+        
+        # Format results to match expected output
+        results = []
+        for parent in sorted_parents:
+            # Calculate average score across chunks
+            avg_score = sum(parent["scores"]) / len(parent["scores"]) if parent["scores"] else 0
+            
+            results.append({
+                "id": parent["id"],
+                "score": parent["max_score"],  # Use max score as the parent score
+                "document": {
+                    "content": "\n\n".join(parent["chunks"]) if parent["chunks"] else "",
+                    "metadata": parent["metadata"],
+                    "parent_id": parent["id"],
+                    "avg_chunk_score": avg_score
+                }
+            })
+            
+        logger.info(f"Retrieved {len(results)} parent documents from {len(chunk_results)} chunks")
+        return results
