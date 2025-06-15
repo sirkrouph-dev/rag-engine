@@ -3,13 +3,13 @@ import typer
 app = typer.Typer(help="RAG Engine CLI")
 
 @app.command()
-def build(config: str = typer.Option(..., '--config', '-c', help='Path to config file')):
+def build(config: str = typer.Option(None, '--config', '-c', help='Path to config file', required=True)):
     """Build vector DB from config."""
     typer.echo(f"Building vector DB with config: {config}")
     # TODO: Add build logic here
 
 @app.command()
-def chat(config: str = typer.Option(..., '--config', '-c', help='Path to config file')):
+def chat(config: str = typer.Option(None, '--config', '-c', help='Path to config file', required=True)):
     """Chat with your data using the specified config."""
     typer.echo(f"Starting chat with config: {config}")
     # TODO: Add chat logic here
