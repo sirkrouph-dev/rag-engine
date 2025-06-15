@@ -33,6 +33,13 @@ source .venv/bin/activate  # On Unix/MacOS
 
 # Install dependencies
 pip install -r requirements.txt
+
+# For optional vector store providers
+pip install faiss-cpu  # or faiss-gpu for GPU acceleration
+pip install chromadb
+pip install psycopg2-binary  # For PostgreSQL
+pip install pinecone-client  # For Pinecone
+pip install qdrant-client  # For Qdrant
 ```
 
 ## 🔧 Quick Start
@@ -53,10 +60,11 @@ pip install -r requirements.txt
     "provider": "openai",
     "model": "text-embedding-3-small",
     "api_key": "${OPENAI_API_KEY}"
-  },
-  "vectorstore": {
-    "provider": "chroma",
-    "persist_directory": "./vector_store"
+  },  "vectorstore": {
+    "provider": "faiss",  // Options: faiss, chroma, postgres, pinecone, qdrant
+    "persist_directory": "./vector_store",
+    "index_type": "Flat",
+    "metric": "cosine"
   },
   "retrieval": {
     "top_k": 4
@@ -78,10 +86,22 @@ pip install -r requirements.txt
 python -m rag_engine build --config configs/your_config.json
 ```
 
+This command will:
+- Load documents from the specified paths
+- Chunk them according to your chunking configuration
+- Generate embeddings using the configured embedding provider
+- Store the embeddings in your chosen vector store
+
 ### 3. Chat with your data
 
 ```bash
 python -m rag_engine chat --config configs/your_config.json
+```
+
+You can also serve the engine as an API:
+
+```bash
+python -m rag_engine serve --config configs/your_config.json --api
 ```
 
 ## 📚 Document Processing
@@ -174,6 +194,107 @@ RAG Engine supports multiple embedding providers:
 }
 ```
 
+## 📊 Vector Store Options
+
+RAG Engine supports multiple vector store providers for flexibility in different deployment scenarios:
+
+### FAISS (Local In-Memory or Disk)
+
+```json
+{
+  "vectorstore": {
+    "provider": "faiss",
+    "index_type": "Flat",  // Flat, IVF, HNSW
+    "metric": "cosine",  // cosine, l2, euclidean
+    "persist_directory": "./vector_stores/faiss"
+  }
+}
+```
+
+### ChromaDB (Local or Server)
+
+```json
+{
+  "vectorstore": {
+    "provider": "chroma",
+    "collection_name": "rag_docs",
+    "persist_directory": "./vector_stores/chroma",
+    "metric": "cosine"
+  }
+}
+```
+
+For ChromaDB server:
+
+```json
+{
+  "vectorstore": {
+    "provider": "chroma",
+    "host": "localhost",
+    "port": 8000,
+    "collection_name": "rag_docs"
+  }
+}
+```
+
+### PostgreSQL with pgVector
+
+```json
+{
+  "vectorstore": {
+    "provider": "postgres",
+    "host": "localhost",
+    "port": 5432,
+    "database": "vector_db",
+    "user": "postgres",
+    "password": "${PGPASSWORD}",
+    "table_name": "rag_documents",
+    "metric": "cosine"  // cosine, l2, inner
+  }
+}
+```
+
+### Pinecone (Cloud)
+
+```json
+{
+  "vectorstore": {
+    "provider": "pinecone",
+    "api_key": "${PINECONE_API_KEY}",
+    "environment": "us-west1-gcp",
+    "index_name": "rag-docs",
+    "namespace": "default",
+    "metric": "cosine"
+  }
+}
+```
+
+### Qdrant (Local or Cloud)
+
+```json
+{
+  "vectorstore": {
+    "provider": "qdrant",
+    "collection_name": "rag_collection",
+    "metric": "cosine",
+    "url": "https://your-qdrant-cluster.cloud"  // For cloud deployment
+  }
+}
+```
+
+Local Qdrant:
+
+```json
+{
+  "vectorstore": {
+    "provider": "qdrant",
+    "host": "localhost",
+    "port": 6333,
+    "collection_name": "rag_collection"
+  }
+}
+```
+
 ## 🤖 LLM Configuration
 
 ### OpenAI
@@ -241,7 +362,7 @@ RAG Engine is built with a modular architecture:
 - **Loaders**: PDF, DOCX, TXT, HTML
 - **Chunkers**: Fixed-size, sentence-based, semantic, recursive
 - **Embedders**: OpenAI, Gemini/Vertex, SentenceTransformers
-- **Vector Stores**: Chroma, FAISS *(coming soon)*
+- **Vector Stores**: FAISS, ChromaDB, PostgreSQL/pgVector, Pinecone, Qdrant
 - **LLMs**: OpenAI, Gemini, local models (Phi-3, Gemma, via Transformers or Ollama)
 - **Interfaces**: CLI, API *(coming soon)*, UI *(coming soon)*
 
@@ -269,7 +390,7 @@ LOADER_REGISTRY["my_format"] = MyCustomLoader()
 
 ## 🔄 Development Roadmap
 
-- [ ] Complete Vector Store implementation (Chroma, FAISS)
+- [x] Complete Vector Store implementation (FAISS, ChromaDB, pgVector, Pinecone, Qdrant)
 - [ ] Retriever strategies (top-k, MMR, filters)
 - [ ] FastAPI server
 - [ ] Streamlit/Gradio interface
