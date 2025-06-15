@@ -1,0 +1,12 @@
+{
+  "documents": [
+    { "type": "pdf", "path": "./docs/tech_guide.pdf" }
+  ],
+  "chunking": { "method": "recursive", "max_tokens": 512, "overlap": 50 },
+  "embedding": { "model": "openai", "api_key": "${OPENAI_API_KEY}" },
+  "vectorstore": { "provider": "chroma", "persist_directory": "./vector_store" },
+  "retrieval": { "top_k": 4 },
+  "prompting": { "system_prompt": "You are a technical assistant. Answer clearly and concisely." },
+  "llm": { "provider": "openai", "model": "gpt-4", "temperature": 0.3 },
+  "output": { "method": "console" }
+}
