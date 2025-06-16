@@ -2,73 +2,67 @@
 
 A powerful, modular framework for building advanced Retrieval-Augmented Generation (RAG) pipelines using configuration-as-code. Combining state-of-the-art retrieval algorithms with multiple vector databases and LLM providers.
 
-> **Status:** Core implementation substantially complete! 🎉 
+> **Status: Early Development** 🚧 
 > 
-> The RAG Engine now includes comprehensive document loading, chunking, embedding, vector storage, retrieval, and LLM integration. Advanced features like chain-of-thought reasoning and tool integration are implemented. Currently finalizing pipeline integration and building the REST API and Web UI.
+> This project is in early development with core components implemented but pipeline integration still in progress. The extensive documentation represents the target vision, not current functionality. See the roadmap below for implementation status.
 >
-> _Built with ❤️ and GitHub Copilot - Transforming vision into code._
+> _Built with ❤️ and GitHub Copilot - Learning and building in public._
 
 ## 🗺️ Project Roadmap
 
 ### Current Implementation Status
 
-| Component | Status | Details |
-|-----------|--------|---------|
-| Core Architecture | ✅ Implemented | Base interfaces, module structure, configuration schema |
-| Document Loading | ✅ Implemented | PDF, TXT, DOCX, HTML loaders with robust error handling |
-| Chunking | ✅ Implemented | Fixed size, recursive, sentence, and token-based chunking strategies |
-| Embedding | ✅ Implemented | OpenAI, Ollama, HuggingFace Transformers with dimension control |
-| Vector Stores | ✅ Implemented | FAISS, ChromaDB, Pinecone with persistence and filtering |
-| Retrieval | ✅ Implemented | Simple similarity, threshold-based, MMR, hybrid search strategies |
-| LLM Integration | ✅ Implemented | OpenAI, Gemini, Local models (Ollama) with streaming support |
-| Config System | ✅ Implemented | JSON/YAML parsing with Pydantic validation and environment variables |
-| Advanced Reasoning | ✅ Implemented | Chain-of-thought, tree-of-thought, scratchpad reasoning modes |
-| Tools System | ✅ Implemented | Web search, calculator, file operations, API integration tools |
-| CLI Framework | ✅ Implemented | Typer-based CLI with build, chat, init, serve commands |
-| Pipeline Integration | � In Progress | Core structure exists, component integration being finalized |
-| REST API | 🟡 In Progress | FastAPI structure defined, endpoints being implemented |
-| Plugin System | � In Progress | Base architecture complete, dynamic loading in development |
-| Web UI | 🔴 Planned | Streamlit/Gradio interface design phase |
-| Evaluation Tools | 🔴 Planned | Framework designed, implementation pending |
-| Metadata Extraction | 🔴 Planned | Enhanced document metadata features planned |
-| Query Processing | 🔴 Planned | Advanced query expansion and reformulation |
+| Component | Status | Implementation Details |
+|-----------|--------|----------------------|
+| **Core Architecture** | ✅ **Complete** | Base interfaces and module structure implemented in `rag_engine/core/base.py` |
+| **Configuration System** | ✅ **Complete** | Pydantic schemas in `rag_engine/config/schema.py`, YAML/JSON parsing |
+| **Document Loading** | ✅ **Implemented** | PDF, TXT, DOCX, HTML loaders in `rag_engine/core/loader.py` |
+| **Text Chunking** | ✅ **Implemented** | Fixed-size, recursive chunking strategies in `rag_engine/core/chunker.py` |
+| **Embedding** | ✅ **Implemented** | OpenAI, Ollama, HuggingFace providers in `rag_engine/core/embedder.py` |
+| **Vector Stores** | ✅ **Implemented** | FAISS, ChromaDB, Pinecone, Qdrant in `rag_engine/core/vectorstore.py` |
+| **Retrieval** | ✅ **Implemented** | Multiple strategies (similarity, MMR, hybrid) in `rag_engine/core/retriever.py` |
+| **LLM Integration** | ✅ **Implemented** | OpenAI, Gemini, Local models in `rag_engine/core/llm.py` |
+| **Tools System** | ✅ **Implemented** | Web search, calculator, file ops in `rag_engine/core/tools.py` and `rag_engine/plugins/tools.py` |
+| **Reasoning Engine** | ✅ **Implemented** | Chain-of-thought, tree-of-thought in `rag_engine/core/reasoning.py` |
+| **CLI Framework** | 🟡 **Partially Working** | Commands defined in `rag_engine/__main__.py` but not fully connected to pipeline |
+| **Pipeline Integration** | 🔴 **Not Working** | Core pipeline exists but component integration incomplete |
+| **REST API** | � **Placeholder Only** | Basic FastAPI structure in `rag_engine/interfaces/api.py` |
+| **Web UI** | 🔴 **Not Started** | Empty file at `rag_engine/interfaces/ui.py` |
+| **Database Integration** | 🔴 **Planned** | Chat history, knowledge graphs not implemented |
+| **Testing Framework** | 🔴 **Not Started** | No tests exist yet |
 
-### Development Timeline
+### What Actually Works Right Now
+- 🟡 **Individual Components**: All core components can be imported and used independently
+- 🟡 **Configuration Loading**: YAML/JSON configs are parsed and validated
+- 🔴 **End-to-End Pipeline**: Full RAG workflow not yet functional
+- 🔴 **CLI Commands**: `python -m rag_engine` exists but commands don't execute pipeline
+- 🔴 **API Endpoints**: No functional endpoints beyond basic health check
 
-- **Q2 2025** (Current - Substantial Progress Made)
-  - ✅ Complete core architecture and base interfaces
-  - ✅ Implement comprehensive document loading (PDF, TXT, DOCX, HTML)
-  - ✅ Build robust chunking strategies (fixed, recursive, sentence, token-based)
-  - ✅ Integrate multiple embedding providers (OpenAI, Ollama, HuggingFace)
-  - ✅ Implement vector stores (FAISS, ChromaDB, Pinecone)
-  - ✅ Build advanced retrieval strategies (similarity, threshold, MMR, hybrid)
-  - ✅ Complete LLM integration (OpenAI, Gemini, Local models)
-  - ✅ Implement reasoning capabilities (chain-of-thought, tree-of-thought)
-  - ✅ Build comprehensive tools system
-  - 🚧 Finalize pipeline integration and CLI functionality
+### Development Timeline & Next Steps
 
-- **Q3 2025** (Next Phase - Infrastructure & Quality)
-  - Complete REST API endpoints and documentation
-  - Implement chat history with multiple database backends:
-    - MongoDB for flexible conversation storage
-    - Google Cloud SQL (PostgreSQL with pgVector) for unified vector + chat storage
-    - Redis for real-time chat caching
-  - Build comprehensive testing framework:
-    - Cypress E2E tests for full pipeline validation
-    - Judge LLM service for automated quality assessment
-    - Performance and load testing infrastructure
-  - Integrate Neo4j knowledge graph for enhanced query expansion
-  - Implement Web UI with Streamlit/Gradio
-  - Selective LangChain integration for document loaders and text splitters
+#### Immediate Priorities (Next 2-4 weeks)
+1. **Connect the Pipeline** - Wire all components together in `rag_engine/core/pipeline.py`
+2. **Make CLI Functional** - Implement actual build/chat functionality
+3. **Basic Testing** - Add unit tests for core components
+4. **Working Example** - Create one complete end-to-end example
 
-- **Q4 2025** (Production Ready)
-  - Advanced evaluation and monitoring tools
-  - Cost tracking and usage analytics
-  - Query expansion and reformulation using knowledge graphs
-  - Response caching and performance optimization
-  - Docker containerization and cloud deployment guides
-  - Enhanced documentation and tutorials
-  - Community plugin marketplace
+#### Short Term (1-2 months)  
+1. **REST API Implementation** - Functional FastAPI endpoints
+2. **Documentation Cleanup** - Align docs with actual functionality
+3. **Error Handling** - Robust error handling throughout pipeline
+4. **Performance Testing** - Basic benchmarking and optimization
+
+#### Medium Term (3-6 months)
+1. **Web UI** - Simple Streamlit/Gradio interface
+2. **Database Integration** - Chat history and knowledge graphs
+3. **Testing Framework** - Cypress + Judge LLM implementation
+4. **Plugin System** - Dynamic component loading
+5. **Community Building** - Examples, tutorials, contributor guides
+
+#### Vision (6+ months)
+1. **Advanced Features** - Query expansion, response caching
+2. **Production Tooling** - Monitoring, cost tracking, deployment guides
+3. **Ecosystem** - Community plugins and integrations
 
 - **Q4 2025**
   - Release Web UI for visualization and interaction
@@ -144,7 +138,89 @@ pip install qdrant-client  # For Qdrant
 
 ## 🔧 Quick Start
 
-> **Note:** The project is under active development, and some features shown in these examples are still in implementation. Please check the [Project Roadmap](#-project-roadmap) section to see what's currently available.
+> **Important**: The full pipeline is not yet functional. You can explore individual components and configuration, but end-to-end RAG is still in development.
+
+### 1. Installation & Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/sirkrouph-dev/rag-engine.git
+cd rag-engine
+
+# Create virtual environment
+python -m venv .venv
+.venv\Scripts\activate  # On Windows
+source .venv/bin/activate  # On Unix/MacOS
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 2. Explore the Configuration System (✅ Working)
+
+Create a config file to see how the system is designed:
+
+```json
+{
+  "documents": [
+    {"type": "pdf", "path": "./docs/sample.pdf"}
+  ],
+  "chunking": {
+    "method": "recursive",
+    "chunk_size": 512, 
+    "chunk_overlap": 50
+  },
+  "embedding": {
+    "provider": "openai",
+    "model": "text-embedding-3-small",
+    "api_key": "${OPENAI_API_KEY}"
+  },
+  "vectorstore": {
+    "provider": "chroma",
+    "persist_directory": "./vector_store",
+    "collection_name": "rag_docs"
+  },
+  "llm": {
+    "provider": "openai",
+    "model": "gpt-4",
+    "temperature": 0.3
+  }
+}
+```
+
+### 3. Test Individual Components (✅ Working)
+
+```python
+# Test configuration loading
+from rag_engine.config.loader import load_config
+config = load_config("configs/example_config.yml")
+
+# Test document loading
+from rag_engine.core.loader import TxtLoader
+loader = TxtLoader()
+docs = loader.load({"path": "sample.txt"})
+
+# Test chunking
+from rag_engine.core.chunker import FixedSizeChunker
+chunker = FixedSizeChunker()
+chunks = chunker.chunk(docs[0], {"chunk_size": 500})
+```
+
+### 4. CLI Commands (🔴 Not Functional Yet)
+
+```bash
+# These exist but don't work end-to-end yet
+python -m rag_engine init
+python -m rag_engine build --config configs/example.json
+python -m rag_engine chat --config configs/example.json
+```
+
+### Current Limitations
+- Pipeline integration incomplete
+- CLI commands are placeholder
+- No working end-to-end examples
+- API endpoints not functional
+- No tests or validation
 
 ### 1. Create a config file (JSON or YAML)
 
@@ -1454,4 +1530,59 @@ This maximizes accessibility while providing options for different user needs.
 ## 📝 License
 
 MIT License
+
+## 🤖 For ML Engineers
+
+### Where ML Fits in RAG Engine
+
+As an ML engineer, here are the key areas where your skills are valuable:
+
+#### 1. **Embedding Model Optimization**
+```python
+# Current: Basic provider integration
+# ML Opportunity: Custom embedding fine-tuning
+{
+  "embedding": {
+    "provider": "custom",
+    "model_path": "./models/domain_specific_embedder",
+    "fine_tuned_for": "legal_documents"
+  }
+}
+```
+
+#### 2. **Retrieval Model Development**
+```python
+# Current: Vector similarity, MMR, hybrid search
+# ML Opportunity: Learned dense retrieval (ColBERT, DPR)
+class LearnedDenseRetriever(RetrieverStrategy):
+    def __init__(self, query_encoder, doc_encoder):
+        self.query_encoder = query_encoder  # Your trained model
+        self.doc_encoder = doc_encoder
+```
+
+#### 3. **Reranking Models**
+```python
+# Current: Basic similarity reranking
+# ML Opportunity: Cross-encoder rerankers
+{
+  "retrieval": {
+    "strategy": "rerank",
+    "reranker": {
+      "type": "cross_encoder",
+      "model": "ms-marco-MiniLM-L-6-v2",
+      "batch_size": 32
+    }
+  }
+}
+```
+
+#### 4. **Query Understanding & Classification**
+```python
+# Current: Basic text classification
+# ML Opportunity: Intent classification, entity extraction
+class MLQueryProcessor:
+    def classify_intent(self, query: str) -> QueryIntent
+    def extract_entities(self, query: str) -> List[Entity]
+    def expand_query(self, query: str) -> List[str]
+```
 
