@@ -2,7 +2,9 @@
 
 A powerful, modular framework for building advanced Retrieval-Augmented Generation (RAG) pipelines using configuration-as-code. Combining state-of-the-art retrieval algorithms with multiple vector databases and LLM providers.
 
-> **Note:** This project is currently a Work in Progress (WIP). Core functionality including document processing, embedding, vector storage, and retrieval strategies are implemented, but the API server, UI, and evaluation tools are still under development. Documentation and examples are being actively updated.
+> **Status:** Core implementation substantially complete! 🎉 
+> 
+> The RAG Engine now includes comprehensive document loading, chunking, embedding, vector storage, retrieval, and LLM integration. Advanced features like chain-of-thought reasoning and tool integration are implemented. Currently finalizing pipeline integration and building the REST API and Web UI.
 >
 > _Built with ❤️ and GitHub Copilot - Transforming vision into code._
 
@@ -13,40 +15,60 @@ A powerful, modular framework for building advanced Retrieval-Augmented Generati
 | Component | Status | Details |
 |-----------|--------|---------|
 | Core Architecture | ✅ Implemented | Base interfaces, module structure, configuration schema |
-| Document Loading | 🟡 In Progress | Basic PDF, TXT, & HTML loading framework |
-| Chunking | 🟡 In Progress | Fixed size & recursive chunking strategies |
-| Embedding | 🟡 In Progress | OpenAI embeddings integration, framework for alternatives |
-| Vector Stores | 🟡 In Progress | FAISS & ChromaDB basic integration |
-| Retrieval | 🔴 Planned | Simple similarity implemented, advanced retrieval strategies in development |
-| LLM Integration | 🟡 In Progress | OpenAI API integration complete, alternatives in development |
-| Config System | ✅ Implemented | JSON/YAML parsing with Pydantic validation |
-| CLI | 🟡 In Progress | Basic commands scaffolded, functionality being connected |
-| REST API | 🔴 Planned | FastAPI structure defined, endpoints in development |
-| Web UI | 🔴 Planned | Not yet implemented |
-| Plugin System | 🔴 Planned | Interface defined, implementation pending |
-| Evaluation Tools | 🔴 Planned | Not yet implemented |
-| Metadata Extraction | 🔴 Planned | Not yet implemented |
-| Query Processing | 🔴 Planned | Not yet implemented |
-| Tools Integration | 🔴 Planned | Architecture design phase, implementation not started |
-| Tool Registry | 🔴 Planned | Not yet implemented |
-| Data Enrichment Tools | 🔴 Planned | Not yet implemented |
-| Content Processing Tools | 🔴 Planned | Not yet implemented |
-| Advanced Reasoning Tools | 🔴 Planned | Not yet implemented |
+| Document Loading | ✅ Implemented | PDF, TXT, DOCX, HTML loaders with robust error handling |
+| Chunking | ✅ Implemented | Fixed size, recursive, sentence, and token-based chunking strategies |
+| Embedding | ✅ Implemented | OpenAI, Ollama, HuggingFace Transformers with dimension control |
+| Vector Stores | ✅ Implemented | FAISS, ChromaDB, Pinecone with persistence and filtering |
+| Retrieval | ✅ Implemented | Simple similarity, threshold-based, MMR, hybrid search strategies |
+| LLM Integration | ✅ Implemented | OpenAI, Gemini, Local models (Ollama) with streaming support |
+| Config System | ✅ Implemented | JSON/YAML parsing with Pydantic validation and environment variables |
+| Advanced Reasoning | ✅ Implemented | Chain-of-thought, tree-of-thought, scratchpad reasoning modes |
+| Tools System | ✅ Implemented | Web search, calculator, file operations, API integration tools |
+| CLI Framework | ✅ Implemented | Typer-based CLI with build, chat, init, serve commands |
+| Pipeline Integration | � In Progress | Core structure exists, component integration being finalized |
+| REST API | 🟡 In Progress | FastAPI structure defined, endpoints being implemented |
+| Plugin System | � In Progress | Base architecture complete, dynamic loading in development |
+| Web UI | 🔴 Planned | Streamlit/Gradio interface design phase |
+| Evaluation Tools | 🔴 Planned | Framework designed, implementation pending |
+| Metadata Extraction | 🔴 Planned | Enhanced document metadata features planned |
+| Query Processing | 🔴 Planned | Advanced query expansion and reformulation |
 
 ### Development Timeline
 
-- **Q2 2025** (Current)
-  - Complete basic document loading for all supported formats
-  - Finish core chunking strategies implementation
-  - Implement basic retrieval functionality
-  - Release initial CLI functionality for build & chat
+- **Q2 2025** (Current - Substantial Progress Made)
+  - ✅ Complete core architecture and base interfaces
+  - ✅ Implement comprehensive document loading (PDF, TXT, DOCX, HTML)
+  - ✅ Build robust chunking strategies (fixed, recursive, sentence, token-based)
+  - ✅ Integrate multiple embedding providers (OpenAI, Ollama, HuggingFace)
+  - ✅ Implement vector stores (FAISS, ChromaDB, Pinecone)
+  - ✅ Build advanced retrieval strategies (similarity, threshold, MMR, hybrid)
+  - ✅ Complete LLM integration (OpenAI, Gemini, Local models)
+  - ✅ Implement reasoning capabilities (chain-of-thought, tree-of-thought)
+  - ✅ Build comprehensive tools system
+  - 🚧 Finalize pipeline integration and CLI functionality
 
-- **Q3 2025**
-  - Complete advanced retrieval strategies
-  - Implement FastAPI server with basic endpoints
-  - Add metadata extraction functionality
-  - Integrate additional vector stores and embedders
-  - Begin tool integration framework development
+- **Q3 2025** (Next Phase - Infrastructure & Quality)
+  - Complete REST API endpoints and documentation
+  - Implement chat history with multiple database backends:
+    - MongoDB for flexible conversation storage
+    - Google Cloud SQL (PostgreSQL with pgVector) for unified vector + chat storage
+    - Redis for real-time chat caching
+  - Build comprehensive testing framework:
+    - Cypress E2E tests for full pipeline validation
+    - Judge LLM service for automated quality assessment
+    - Performance and load testing infrastructure
+  - Integrate Neo4j knowledge graph for enhanced query expansion
+  - Implement Web UI with Streamlit/Gradio
+  - Selective LangChain integration for document loaders and text splitters
+
+- **Q4 2025** (Production Ready)
+  - Advanced evaluation and monitoring tools
+  - Cost tracking and usage analytics
+  - Query expansion and reformulation using knowledge graphs
+  - Response caching and performance optimization
+  - Docker containerization and cloud deployment guides
+  - Enhanced documentation and tutorials
+  - Community plugin marketplace
 
 - **Q4 2025**
   - Release Web UI for visualization and interaction
@@ -324,180 +346,6 @@ Example workflow:
 5. The template renders with specific instructions for positioning Windows installation steps prominently
 
 This integration creates a flexible system that can adapt to different query types while maintaining consistent, high-quality responses.
-
-## 🤖 LLM Configuration
-
-### OpenAI
-
-```json
-{
-  "llm": {
-    "provider": "openai",
-    "model": "gpt-4",  // gpt-3.5-turbo, gpt-4, gpt-4-turbo, etc.
-    "temperature": 0.3,
-    "max_tokens": 1000,
-    "api_key": "${OPENAI_API_KEY}",
-    "system_prompt": "You are a helpful assistant."
-  }
-}
-```
-
-### Google Gemini
-
-```json
-{
-  "llm": {
-    "provider": "gemini",
-    "model": "gemini-1.5-pro",  // or gemini-1.5-flash, gemini-1.0-pro, etc.
-    "temperature": 0.3,
-    "max_tokens": 1000,
-    "api_key": "${GOOGLE_API_KEY}"
-  }
-}
-```
-
-### Local Models - Transformers (Direct)
-
-```json
-{
-  "llm": {
-    "provider": "local",
-    "model_provider": "transformers", 
-    "model": "microsoft/phi-3-mini",  // or google/gemma-7b
-    "temperature": 0.7,
-    "load_in_8bit": true,  // Quantization for efficiency
-    "max_tokens": 1000
-  }
-}
-```
-
-### Local Models - Ollama
-
-```json
-{
-  "llm": {
-    "provider": "local",
-    "model_provider": "ollama",
-    "model": "phi3",  // or gemma:7b, llama3, mistral, etc.
-    "temperature": 0.7,
-    "ollama_host": "http://localhost:11434"
-  }
-}
-```
-
-## 🧠 Advanced Query Processing
-
-RAG Engine supports sophisticated query processing pipelines beyond simple RAG, including:
-
-### Query Classification and Routing
-
-Configure how different query types are handled:
-
-```json
-{
-  "query_processing": {
-    "classifier": {
-      "enabled": true,
-      "model": "local",  // or "openai", "gemini", etc.
-      "categories": [
-        "informational", 
-        "instructional", 
-        "troubleshooting",
-        "greeting",
-        "gratitude",
-        "out_of_context"
-      ]
-    },
-    "routing": {
-      "informational": {"use_rag": true, "response_style": "detailed"},
-      "instructional": {"use_rag": true, "response_style": "step_by_step"},
-      "troubleshooting": {"use_rag": true, "response_style": "diagnostic"},
-      "greeting": {"use_rag": false, "response_style": "conversational"},
-      "gratitude": {"use_rag": false, "response_style": "brief"},
-      "out_of_context": {"use_rag": false, "response_style": "redirect"}
-    }
-  }
-}
-```
-
-### Ambiguity Detection and Clarification
-
-Handle ambiguous queries with follow-up clarification:
-
-```json
-{
-  "clarification": {
-    "enabled": true,
-    "ambiguity_threshold": 0.7,
-    "clarification_prompt": "I need more information to answer accurately. Could you please provide more details about {ambiguous_aspect}?",
-    "max_clarification_turns": 2
-  }
-}
-```
-
-### Response Shaping by Category
-
-Customize response style based on query category:
-
-```json
-{
-  "response_shaping": {
-    "informational": "You are an expert providing detailed factual information. Cite relevant sections from the retrieved documents.",
-    "instructional": "You are a teacher providing step-by-step instructions. Break down complex processes clearly.",
-    "troubleshooting": "You are a technical support specialist diagnosing problems. Consider possible causes and solutions.",
-    "out_of_context": "You are a friendly assistant. Politely explain that this question is outside the scope of the available knowledge."
-  }
-}
-```
-
-### Integration with Jinja2 Templating
-
-The query processing system integrates with the Jinja2 templating system to create dynamic, context-aware prompts:
-
-```json
-{
-  "prompting": {
-    "template_engine": "jinja2",
-    "templates": {
-      "informational": {
-        "system": "You are an expert providing factual information. Use the following documents as context:\n{% for doc in documents %}\nDocument [{{ loop.index }}]: {{ doc.content }}\n{% endfor %}\n\nAdditional instructions: {{ response_style }}",
-        "user": "{{ processed_query }}",
-        "response": "{{ response }}"
-      },
-      "instructional": {
-        "system": "You are a teacher providing instructions. Based on these reference materials:\n{% for doc in documents %}\nReference [{{ loop.index }}]: {{ doc.content }}\n{% endfor %}\n\nAdditional instructions: {{ response_style }}",
-        "user": "{{ processed_query }}",
-        "response": "{{ response }}"
-      },
-      "troubleshooting": {
-        "system": "You are a technical support specialist. Consider these knowledge base articles:\n{% for doc in documents %}\nArticle [{{ loop.index }}]: {{ doc.content }}\n{% endfor %}\n\nAdditional instructions: {{ response_style }}",
-        "user": "{{ processed_query }}",
-        "response": "{{ response }}"
-      },
-      "out_of_context": {
-        "system": "You are a helpful assistant. You should politely decline to answer questions outside your knowledge scope.",
-        "user": "{{ original_query }}",
-        "response": "{{ response }}"
-      }
-    }
-  }
-}
-```
-
-In this integration:
-
-1. The query processor first **classifies** the incoming query
-2. Based on classification, it **selects the appropriate template**
-3. The template gets populated with:
-   - Retrieved documents (for RAG-based queries)
-   - Query metadata and extracted entities
-   - Response style instructions
-   - Original or processed query as needed
-
-This creates a powerful system where prompts are dynamically constructed based on the query type, allowing for specialized handling of different kinds of questions while maintaining a consistent configuration-driven approach.
-
-This advanced query processing system allows for more intelligent handling of user queries, improving the relevance and quality of responses while gracefully handling edge cases.
-
 
 ## 📚 Document Processing
 
@@ -1061,6 +909,149 @@ This creates a powerful system where prompts are dynamically constructed based o
 
 This advanced query processing system allows for more intelligent handling of user queries, improving the relevance and quality of responses while gracefully handling edge cases.
 
+## 🧠 Chain of Thought (CoT) Reasoning
+
+RAG Engine includes advanced reasoning capabilities that make AI outputs more transparent, explainable, and trustworthy. These features help users understand how the AI arrived at its conclusions and how it interprets retrieved information.
+
+### Chain of Thought Integration
+
+```json
+{
+  "reasoning": {
+    "enabled": true,
+    "mode": "step_by_step",  // Options: step_by_step, tree_of_thought, scratchpad
+    "verbosity": "medium",   // Options: minimal, medium, detailed
+    "include_in_output": true,
+    "structured_format": true
+  }
+}
+```
+
+### Reasoning Modes
+
+#### Step-by-Step Reasoning
+
+Guides the LLM through a sequential reasoning process:
+
+```json
+{
+  "reasoning": {
+    "mode": "step_by_step",
+    "steps": [
+      "analyze_question",
+      "extract_key_information",
+      "evaluate_evidence",
+      "formulate_answer",
+      "verify_answer"
+    ],
+    "format": "markdown"
+  }
+}
+```
+
+#### Tree of Thought
+
+Explores multiple reasoning paths before arriving at a conclusion:
+
+```json
+{
+  "reasoning": {
+    "mode": "tree_of_thought",
+    "max_branches": 3,
+    "max_depth": 2,
+    "selection_strategy": "best_first"  // Options: best_first, breadth_first, depth_first
+  }
+}
+```
+
+#### Self-Reflection
+
+Enables the model to critique its own reasoning and refine its answers:
+
+```json
+{
+  "reasoning": {
+    "self_reflection": {
+      "enabled": true,
+      "reflection_prompt": "Review your answer above. Is there anything unclear, incorrect, or missing from your explanation? Provide a better answer if needed.",
+      "iterations": 1
+    }
+  }
+}
+```
+
+### Reasoning Templates
+
+RAG Engine provides specialized templates for different reasoning modes:
+
+```json
+{
+  "prompting": {
+    "template_engine": "jinja2",
+    "templates": {
+      "cot_reasoning": {
+        "system": "You are a careful thinking assistant that solves problems step by step. First analyze the question, then evaluate the provided documents, and finally provide a well-reasoned answer.\n\nDocuments:\n{% for doc in documents %}\nDocument [{{ loop.index }}]: {{ doc.content }}\n{% endfor %}",
+        "user": "{{ query }}\n\nPlease think through this step by step.",
+        "response": "{{ reasoning_steps }}\n\n{{ final_answer }}"
+      }
+    }
+  }
+}
+```
+
+### Exposing Reasoning to Users
+
+RAG Engine provides options for how reasoning should be exposed to end users:
+
+1. **Visible Reasoning**: Show the full reasoning process along with the final answer
+   ```json
+   { "reasoning": { "output_mode": "full_process" } }
+   ```
+
+2. **Hidden Reasoning**: Use CoT internally but only show the final answer
+   ```json
+   { "reasoning": { "output_mode": "answer_only" } }
+   ```
+
+3. **Expandable Reasoning**: Show the answer with an option to expand and view reasoning
+   ```json
+   { "reasoning": { "output_mode": "expandable" } }
+   ```
+
+### Structured Reasoning Output
+
+For applications that need to process reasoning steps programmatically:
+
+```json
+{
+  "reasoning": {
+    "structured_format": true,
+    "output_schema": {
+      "reasoning_steps": ["string"],
+      "retrieved_documents": ["string"],
+      "confidence_score": "number",
+      "final_answer": "string"
+    }
+  }
+}
+```
+
+### Benefits of Chain of Thought in RAG
+
+1. **Transparency**: Users understand how the AI interprets information and reaches conclusions
+2. **Error Detection**: Makes it easier to identify where reasoning went wrong
+3. **Trust Building**: Shows which documents influenced the answer and how they were used
+4. **Education**: Helps users learn the thinking process behind complex answers
+5. **Debugging**: Makes it easier to refine prompts and retrieval strategies
+
+Chain of Thought reasoning is especially powerful for:
+- Complex questions requiring multiple logical steps
+- Scenarios where showing evidence is important
+- Technical or scientific domains where methodology matters
+- Applications where users need to verify the AI's work
+
+> **Note:** Chain of Thought reasoning capabilities are planned for implementation in Q3 2025. The basic framework is in place, but full integration with the various reasoning modes is still in development.
+
 ## 🛠️ Tools Integration 
 
 RAG Engine supports the integration of specialized tools that extend the capabilities of language models beyond basic text generation. These tools allow the RAG pipeline to perform actions, retrieve external information, and interact with external systems.
@@ -1197,6 +1188,153 @@ RAG Engine will provide a pluggable tool architecture allowing:
 5. **Custom Tool Creation**: API for creating custom domain-specific tools
 
 > **Note:** Tool integration is planned for a future release. Please check the [Project Roadmap](#-project-roadmap) for the current development status.
+
+## 🗄️ Database Integration Options
+
+RAG Engine supports multiple database backends for different use cases:
+
+### Chat History & Conversation Storage
+
+#### MongoDB (NoSQL)
+Perfect for flexible conversation schemas and rapid development:
+
+```json
+{
+  "chat_history": {
+    "provider": "mongodb",
+    "connection_string": "mongodb://localhost:27017/rag_engine",
+    "database": "rag_conversations",
+    "collection": "chat_sessions",
+    "indexes": ["user_id", "session_id", "timestamp"]
+  }
+}
+```
+
+#### Google Cloud SQL - PostgreSQL
+Managed PostgreSQL with pgVector for unified vector + chat storage:
+
+```json
+{
+  "chat_history": {
+    "provider": "google_cloud_sql",
+    "database_type": "postgresql",
+    "instance_connection_name": "project:region:instance",
+    "database": "rag_engine",
+    "user": "rag_user",
+    "password": "${CLOUD_SQL_PASSWORD}",
+    "enable_pgvector": true,
+    "ssl_mode": "require"
+  }
+}
+```
+
+#### Google Cloud SQL - MySQL
+For structured relational chat history:
+
+```json
+{
+  "chat_history": {
+    "provider": "google_cloud_sql", 
+    "database_type": "mysql",
+    "instance_connection_name": "project:region:instance",
+    "database": "rag_conversations",
+    "user": "rag_user",
+    "password": "${CLOUD_SQL_PASSWORD}",
+    "charset": "utf8mb4"
+  }
+}
+```
+
+#### Redis (Caching & Real-time)
+Ultra-fast chat caching and real-time features:
+
+```json
+{
+  "chat_history": {
+    "provider": "redis",
+    "host": "localhost",
+    "port": 6379,
+    "password": "${REDIS_PASSWORD}",
+    "db": 0,
+    "ttl_seconds": 86400,
+    "use_streams": true
+  }
+}
+```
+
+### Knowledge Graph Storage
+
+#### Neo4j (Recommended)
+For entity relationships and semantic connections:
+
+```json
+{
+  "knowledge_graph": {
+    "provider": "neo4j",
+    "uri": "bolt://localhost:7687",
+    "user": "neo4j",
+    "password": "${NEO4J_PASSWORD}",
+    "database": "rag_knowledge",
+    "enable_vector_search": true
+  }
+}
+```
+
+### Multi-Database Architecture
+
+You can combine different databases for optimal performance:
+
+```json
+{
+  "databases": {
+    "vector_store": {
+      "provider": "pinecone",
+      "api_key": "${PINECONE_API_KEY}"
+    },
+    "chat_history": {
+      "provider": "google_cloud_sql",
+      "database_type": "postgresql"
+    },
+    "knowledge_graph": {
+      "provider": "neo4j"
+    },
+    "cache": {
+      "provider": "redis"
+    }
+  }
+}
+```
+
+### Database Schema Examples
+
+#### Chat History Schema (PostgreSQL)
+```sql
+CREATE TABLE conversations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id VARCHAR(255) NOT NULL,
+    session_id VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    metadata JSONB,
+    config_snapshot JSONB
+);
+
+CREATE TABLE messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    conversation_id UUID REFERENCES conversations(id),
+    role VARCHAR(50) NOT NULL, -- 'user', 'assistant', 'system'
+    content TEXT NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    metadata JSONB, -- retrieval info, costs, etc.
+    embedding VECTOR(1536) -- for semantic search on chat history
+);
+
+CREATE INDEX idx_conversations_user_session ON conversations(user_id, session_id);
+CREATE INDEX idx_messages_conversation ON messages(conversation_id, timestamp);
+CREATE INDEX idx_messages_embedding ON messages USING ivfflat (embedding vector_cosine_ops);
+```
+
+---
 
 ## 👥 Contributing
 
