@@ -11,8 +11,9 @@ class ChunkingConfig(BaseModel):
     overlap: int
 
 class EmbeddingConfig(BaseModel):
+    provider: str = "openai"
     model: str
-    api_key: Optional[str]
+    api_key: Optional[str] = None
 
 class VectorStoreConfig(BaseModel):
     provider: str
