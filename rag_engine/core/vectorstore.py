@@ -375,8 +375,7 @@ class ChromaDBVectorStore(VectorStoreProvider):
             # Get embedding dimensions from first document if not specified
             embedding_fn = None
             embedding_dimension = config.get("embedding_dimension", None)
-            
-            # For distance metrics
+              # For distance metrics
             metric = config.get("metric", "cosine")
             if metric == "cosine":
                 distance_func = "cosine"
@@ -389,10 +388,7 @@ class ChromaDBVectorStore(VectorStoreProvider):
                 
             self.collection = client.create_collection(
                 name=collection_name,
-                metadata={"description": "RAG Engine collection"},
-                embedding_function=embedding_fn,
-                embedding_dimension=embedding_dimension,
-                distance_function=distance_func
+                metadata={"description": "RAG Engine collection"}
             )
             logger.info(f"Created new ChromaDB collection: {collection_name}")
             
@@ -1195,20 +1191,30 @@ class DefaultVectorStore(BaseVectorStore):
     """Main vector store class that delegates to the appropriate provider based on config."""
     
     def __init__(self):
-        self.providers = {
-            "faiss": FAISSVectorStore(),
-            "chroma": ChromaDBVectorStore(),
-            "postgres": PostgresVectorStore(),
-            "pinecone": PineconeVectorStore(),
-            "qdrant": QdrantVectorStore()
+        # Use lazy loading for providers to avoid import errors
+        self.providers = {}
+        self.available_providers = {
+            "faiss": FAISSVectorStore,
+            "chroma": ChromaDBVectorStore,
+            "postgres": PostgresVectorStore,
+            "pinecone": PineconeVectorStore,
+            "qdrant": QdrantVectorStore
         }
         
     def _get_provider(self, config: Dict[str, Any]) -> VectorStoreProvider:
-        """Get the configured vector store provider."""
+        """Get the configured vector store provider with lazy loading."""
         provider_name = config.get("provider", "faiss").lower()
         
-        if provider_name not in self.providers:
+        if provider_name not in self.available_providers:
             raise ValueError(f"Unsupported vector store provider: {provider_name}")
+        
+        # Lazy load the provider
+        if provider_name not in self.providers:
+            try:
+                provider_class = self.available_providers[provider_name]
+                self.providers[provider_name] = provider_class()
+            except Exception as e:
+                raise ValueError(f"Failed to initialize {provider_name} provider: {str(e)}")
             
         return self.providers[provider_name]
     
