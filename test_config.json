@@ -1,0 +1,32 @@
+{
+  "documents": [
+    { "type": "txt", "path": "./test_doc.txt" }
+  ],
+  "chunking": { 
+    "method": "fixed", 
+    "max_tokens": 200, 
+    "overlap": 20 
+  },
+  "embedding": { 
+    "model": "text-embedding-3-small", 
+    "api_key": "${OPENAI_API_KEY}" 
+  },
+  "vectorstore": { 
+    "provider": "chroma", 
+    "persist_directory": "./test_vector_store" 
+  },  
+  "retrieval": { 
+    "top_k": 3
+  },
+  "prompting": { 
+    "system_prompt": "You are a helpful assistant that answers questions based on the provided context. Be concise and accurate." 
+  },
+  "llm": { 
+    "provider": "openai", 
+    "model": "gpt-3.5-turbo", 
+    "temperature": 0.3 
+  },
+  "output": { 
+    "method": "console" 
+  }
+}
