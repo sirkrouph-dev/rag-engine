@@ -44,6 +44,10 @@ class FixedSizeChunker(ChunkStrategy):
                 }
             })
             
+            # If we've reached the end, break to avoid infinite loop
+            if end >= len(content):
+                break
+                
             start = end - chunk_overlap if chunk_overlap > 0 else end
             
         return chunks
