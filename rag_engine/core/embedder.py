@@ -285,6 +285,10 @@ class DefaultEmbedder(BaseEmbedder):
         # Generate embeddings for all texts
         embeddings = provider.embed_documents(texts, config)
         
+        # Ensure we have embeddings for all chunks
+        if len(embeddings) != len(chunks):
+            raise ValueError(f"Embedding count ({len(embeddings)}) doesn't match chunk count ({len(chunks)})")
+        
         # Add embeddings back to chunks
         for i, embedding in enumerate(embeddings):
             chunks[i]["embedding"] = embedding

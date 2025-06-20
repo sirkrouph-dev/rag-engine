@@ -141,7 +141,8 @@ class Pipeline:
         print("💬 Starting chat mode...")
         print("Type 'quit' or 'exit' to end the conversation.")
         print("-" * 50)
-          # Load existing vector store if it exists
+        
+        # Load existing vector store if it exists
         if not self.vectorstore:
             print("❌ No vector store found. Please run 'build' first.")
             return
@@ -173,8 +174,12 @@ class Pipeline:
             try:
                 response = self._generate_response(user_input)
                 print(f"\n🤖 Answer: {response}")
+                if query is not None:  # Single query mode
+                    return response
             except Exception as e:
                 print(f"❌ Error generating response: {str(e)}")
+                if query is not None:  # Single query mode
+                    return None
             
             if query is not None:  # Single query mode
                 break
@@ -187,7 +192,7 @@ class Pipeline:
             "top_k": self.config.retrieval.top_k,
             "embedder": self.embedder,
             "embedding_config": {
-                "provider": "openai",
+                "provider": self.config.embedding.provider,
                 "model": self.config.embedding.model,
                 "api_key": self.config.embedding.api_key
             }

@@ -1,0 +1,7 @@
+This is a sample document for testing the RAG engine functionality.
+
+The document contains multiple paragraphs to test chunking strategies. It discusses various topics to ensure the retrieval system can find relevant information.
+
+This paragraph talks about machine learning and artificial intelligence. These technologies are transforming how we process and understand information.
+
+The final paragraph covers natural language processing and how it enables computers to understand human language. This is crucial for building effective question-answering systems.
