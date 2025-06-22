@@ -110,6 +110,7 @@ def serve(
     framework: str = typer.Option("fastapi", '--framework', '-f', help='API framework (fastapi, flask, django)'),
     host: str = typer.Option("0.0.0.0", '--host', help='Host to bind to'),
     port: int = typer.Option(8000, '--port', help='Port to bind to'),
+    workers: int = typer.Option(1, '--workers', '-w', help='Number of worker processes (production scaling)'),
     reload: bool = typer.Option(False, '--reload', help='Enable auto-reload for development'),
     ui: str = typer.Option(None, '--ui', help='Serve web UI (streamlit, gradio)'),
     ui_port: int = typer.Option(8501, '--ui-port', help='Port for UI server')
@@ -172,43 +173,237 @@ run_streamlit_ui('{config}')
         typer.echo(f"⚙️  Framework: {framework}")
         typer.echo(f"🔧 Config: {config}")
         typer.echo(f"🌐 Host: {host}:{port}")
-        
-        # Import the API factory
-        from rag_engine.interfaces.base_api import APIModelFactory
-        
-        # Import framework implementations to register them
+          # Import the enhanced API factory
+        from rag_engine.interfaces.enhanced_base_api import enhanced_factory
+        from rag_engine.interfaces.enhanced_base_api import APICustomization, AuthMethod, RateLimitType
+          # Import and register enhanced framework implementations
         try:
-            from rag_engine.interfaces.api import FastAPIServer  # FastAPI
+            from rag_engine.interfaces.fastapi_enhanced import FastAPIEnhanced
+            enhanced_factory.register_framework("fastapi", FastAPIEnhanced)
+            typer.echo("✅ FastAPI Enhanced registered")
         except ImportError:
-            typer.echo("⚠️  FastAPI not available")
-        
-        try:
-            from rag_engine.interfaces.flask_api import FlaskServer  # Flask
-        except ImportError:
-            typer.echo("⚠️  Flask not available")
+            typer.echo("⚠️  FastAPI Enhanced not available")
         
         try:
-            from rag_engine.interfaces.django_api import DjangoServer  # Django
+            from rag_engine.interfaces.flask_enhanced import FlaskEnhanced
+            enhanced_factory.register_framework("flask", FlaskEnhanced)
+            typer.echo("✅ Flask Enhanced registered")
         except ImportError:
-            typer.echo("⚠️  Django not available")
+            typer.echo("⚠️  Flask Enhanced not available")
+        
+        try:
+            from rag_engine.interfaces.django_enhanced import DjangoEnhanced
+            enhanced_factory.register_framework("django", DjangoEnhanced)
+            typer.echo("✅ Django Enhanced registered")
+        except ImportError:
+            typer.echo("⚠️  Django Enhanced not available")
+        
+        # Register example custom servers
+        try:
+            from rag_engine.interfaces.custom_servers import register_example_servers
+            register_example_servers()
+            custom_servers = enhanced_factory.list_custom_servers()
+            if custom_servers:
+                typer.echo(f"✅ Custom servers registered: {', '.join(custom_servers)}")
+        except ImportError:
+            typer.echo("⚠️  Custom servers not available")
         
         # List available frameworks
-        available_frameworks = APIModelFactory.list_frameworks()
-        typer.echo(f"📋 Available frameworks: {', '.join(available_frameworks)}")
+        available_frameworks = enhanced_factory.list_frameworks()
+        builtin_frameworks = enhanced_factory.list_builtin_frameworks()
+        custom_servers = enhanced_factory.list_custom_servers()
+        
+        typer.echo(f"📋 Built-in frameworks: {', '.join(builtin_frameworks)}")
+        if custom_servers:
+            typer.echo(f"🔧 Custom servers: {', '.join(custom_servers)}")
+        typer.echo(f"📋 Total available: {', '.join(available_frameworks)}")
         
         if framework not in available_frameworks:
-            typer.echo(f"❌ Framework '{framework}' not available. Use one of: {', '.join(available_frameworks)}", err=True)
+            typer.echo(f"❌ Framework '{framework}' not available.", err=True)
+            
+            # Show detailed help for custom servers
+            if framework.startswith('custom'):
+                typer.echo("\n💡 To use a custom server:", err=True)
+                typer.echo("1. Create a custom server class", err=True)
+                typer.echo("2. Register it with enhanced_factory.register_custom_server()", err=True)
+                typer.echo("3. Use the registered name as framework", err=True)
+                typer.echo("\nSee ENHANCED_API_GUIDE.md for examples", err=True)
+            
             raise typer.Exit(1)
         
-        # Create and start the server
-        server = APIModelFactory.create_server(framework, config_path=config)
-        server.start_server(host=host, port=port, reload=reload)
+        # Show framework info if it's a custom server
+        framework_info = enhanced_factory.get_framework_info(framework)
+        if framework_info and framework_info.get('type') == 'custom':
+            typer.echo(f"🔧 Using custom server: {framework_info.get('description', 'Custom server')}")
+        
+        # Create API customization configuration
+        api_config = APICustomization(
+            host=host,
+            port=port,
+            workers=workers,
+            debug=reload,
+            reload=reload,
+            enable_docs=True,
+            enable_metrics=True,
+            enable_health_checks=True,
+            enable_rate_limiting=True,
+            enable_compression=True,
+            enable_request_logging=True,
+            requests_per_minute=100,
+            cors_origins=["*"],
+            auth_method=AuthMethod.NONE,  # Can be configured via environment
+            custom_headers={
+                "X-Powered-By": "RAG-Engine-Enhanced",
+                "X-Framework": framework.upper()
+            }
+        )
+        
+        # Load RAG configuration
+        rag_config = load_config(config) if config else None
+        
+        # Create and start the enhanced server
+        server = enhanced_factory.create_server(framework, config=rag_config, api_config=api_config)
+        
+        # Production scaling info
+        if workers > 1:
+            typer.echo(f"🏭 Production mode: Using {workers} workers for scalability")
+        elif reload:
+            typer.echo("🛠️  Development mode: Auto-reload enabled")
+        
+        server.start_server(host=host, port=port, workers=workers, reload=reload)
         
     except KeyboardInterrupt:
         typer.echo("\n👋 Server stopped.")
     except Exception as e:
         typer.echo(f"❌ Server failed: {str(e)}", err=True)
         raise typer.Exit(1)
+
+
+@app.command()
+def custom_server(
+    action: str = typer.Argument(..., help="Action: list, create, validate, register"),
+    name: str = typer.Option(None, '--name', '-n', help='Server name for create/register actions'),
+    framework: str = typer.Option("custom", '--framework', '-f', help='Framework type for template'),
+    file_path: str = typer.Option(None, '--file', help='Path to custom server file for register/validate')
+):
+    """Manage custom server implementations."""
+    
+    if action == "list":
+        from rag_engine.interfaces.enhanced_base_api import enhanced_factory
+        from rag_engine.interfaces.custom_servers import register_example_servers
+        
+        # Register example servers to show what's available
+        try:
+            register_example_servers()
+        except:
+            pass
+        
+        builtin = enhanced_factory.list_builtin_frameworks()
+        custom = enhanced_factory.list_custom_servers()
+        
+        typer.echo("📋 Available Servers:")
+        typer.echo(f"  Built-in: {', '.join(builtin) if builtin else 'None'}")
+        typer.echo(f"  Custom: {', '.join(custom) if custom else 'None'}")
+        
+        if custom:
+            typer.echo("\n🔧 Custom Server Details:")
+            for server_name in custom:
+                info = enhanced_factory.get_framework_info(server_name)
+                typer.echo(f"  • {server_name}: {info.get('description', 'No description')}")
+    
+    elif action == "create":
+        if not name:
+            typer.echo("❌ Name is required for create action", err=True)
+            raise typer.Exit(1)
+        
+        from rag_engine.interfaces.custom_servers import create_custom_server_template        
+        template = create_custom_server_template(name, framework)
+        
+        filename = f"{name.lower()}_server.py"
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(template)
+        
+        typer.echo(f"✅ Created custom server template: {filename}")
+        typer.echo(f"📝 Edit the file to implement your {framework} server")
+        typer.echo(f"🚀 Then use: rag-engine serve --framework {name.lower()}")
+    
+    elif action == "validate":
+        if not file_path:
+            typer.echo("❌ File path is required for validate action", err=True)
+            raise typer.Exit(1)
+        
+        try:
+            import importlib.util
+            import sys
+            
+            # Load the module
+            spec = importlib.util.spec_from_file_location("custom_server", file_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            
+            # Find server classes
+            from rag_engine.interfaces.custom_servers import validate_custom_server_implementation
+            
+            server_classes = []
+            for attr_name in dir(module):
+                attr = getattr(module, attr_name)
+                if (isinstance(attr, type) and 
+                    hasattr(attr, 'create_app') and 
+                    hasattr(attr, 'start_server')):
+                    server_classes.append(attr)
+            
+            if not server_classes:
+                typer.echo("❌ No custom server classes found in file", err=True)
+                raise typer.Exit(1)
+            
+            # Validate each server class
+            all_valid = True
+            for server_class in server_classes:
+                issues = validate_custom_server_implementation(server_class)
+                if issues:
+                    typer.echo(f"❌ {server_class.__name__} has issues:")
+                    for issue in issues:
+                        typer.echo(f"  • {issue}")
+                    all_valid = False
+                else:
+                    typer.echo(f"✅ {server_class.__name__} is valid")
+            
+            if all_valid:
+                typer.echo("🎉 All server implementations are valid!")
+            else:
+                raise typer.Exit(1)
+                
+        except Exception as e:
+            typer.echo(f"❌ Validation failed: {e}", err=True)
+            raise typer.Exit(1)
+    
+    elif action == "register":
+        if not name or not file_path:
+            typer.echo("❌ Both name and file path are required for register action", err=True)
+            raise typer.Exit(1)
+        
+        try:
+            import importlib.util
+            
+            # Load the module
+            spec = importlib.util.spec_from_file_location("custom_server", file_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            
+            # Register with factory (this would typically be done in the module itself)
+            typer.echo(f"✅ Custom server module loaded from {file_path}")
+            typer.echo(f"🔧 Server should register itself with enhanced_factory.register_custom_server()")
+            typer.echo(f"🚀 Now you can use: rag-engine serve --framework {name}")
+            
+        except Exception as e:
+            typer.echo(f"❌ Registration failed: {e}", err=True)
+            raise typer.Exit(1)
+    
+    else:
+        typer.echo(f"❌ Unknown action: {action}", err=True)
+        typer.echo("Available actions: list, create, validate, register")
+        raise typer.Exit(1)
+
 
 
 def _get_example_config(template: str) -> str:

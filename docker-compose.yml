@@ -13,7 +13,7 @@ services:
       - ./config:/app/config
       - ./data:/app/data
       - ./vector_store:/app/vector_store
-    command: ["python", "-m", "rag_engine", "serve", "--config", "/app/config/production.json", "--framework", "fastapi", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["python", "-m", "rag_engine", "serve", "--config", "/app/config/production.json", "--framework", "fastapi", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -33,7 +33,7 @@ services:
       - ./config:/app/config
       - ./data:/app/data
       - ./vector_store:/app/vector_store
-    command: ["python", "-m", "rag_engine", "serve", "--config", "/app/config/production.json", "--framework", "flask", "--host", "0.0.0.0", "--port", "8001"]
+    command: ["python", "-m", "rag_engine", "serve", "--config", "/app/config/production.json", "--framework", "flask", "--host", "0.0.0.0", "--port", "8001", "--workers", "3"]
 
   rag-engine-ui:
     build: .

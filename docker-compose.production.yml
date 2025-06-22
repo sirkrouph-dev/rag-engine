@@ -1,0 +1,155 @@
+# Production Docker Compose with Scalable RAG Engine
+version: '3.8'
+
+services:
+  # FastAPI server with multiple workers
+  fastapi-server:
+    build: .
+    command: ["python", "-m", "rag_engine", "serve", "--config", "/app/config/production.json", "--framework", "fastapi", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - HUGGINGFACE_API_TOKEN=${HUGGINGFACE_API_TOKEN}
+      - RAG_CONFIG_PATH=/app/config/production.json
+    volumes:
+      - ./documents:/app/documents:ro
+      - ./vector_store:/app/vector_store
+      - ./logs:/app/logs
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+  # Flask server with Gunicorn
+  flask-server:
+    build: .
+    command: ["python", "-m", "rag_engine", "serve", "--config", "/app/config/production.json", "--framework", "flask", "--host", "0.0.0.0", "--port", "8001", "--workers", "4"]
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - HUGGINGFACE_API_TOKEN=${HUGGINGFACE_API_TOKEN}
+      - RAG_CONFIG_PATH=/app/config/production.json
+    volumes:
+      - ./documents:/app/documents:ro
+      - ./vector_store:/app/vector_store
+      - ./logs:/app/logs
+    expose:
+      - "8001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro  # Mount SSL certificates if available
+    depends_on:
+      - fastapi-server
+      - flask-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # Streamlit UI (optional)
+  streamlit-ui:
+    build: .
+    command: ["python", "-m", "rag_engine", "serve", "--config", "/app/config/production.json", "--ui", "streamlit", "--ui-port", "8501"]
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - HUGGINGFACE_API_TOKEN=${HUGGINGFACE_API_TOKEN}
+      - RAG_CONFIG_PATH=/app/config/production.json
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./documents:/app/documents:ro
+      - ./vector_store:/app/vector_store:ro
+    depends_on:
+      - fastapi-server
+    profiles:
+      - ui  # Only start with --profile ui
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:alpine
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - cache
+
+  # Prometheus monitoring (optional)
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    profiles:
+      - monitoring
+
+  # Grafana dashboard (optional)
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    profiles:
+      - monitoring
+
+volumes:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    driver: bridge
