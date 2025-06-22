@@ -2,33 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom base styles */
+/* Theme Color System */
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
+    /* Default to dark mode */
+    @apply dark;
   }
   
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply transition-colors duration-300;
+    background-color: theme('colors.dark.bg');
+    color: theme('colors.dark.text.primary');
+  }
+  
+  /* Light mode overrides */
+  html:not(.dark) body {
+    background-color: theme('colors.light.bg');
+    color: theme('colors.light.text.primary');
   }
 }
 
-/* Custom component styles */
+/* Component Styles with New Color System */
 @layer components {
+  /* Button Components */
   .btn {
     @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
   
   .btn-primary {
-    @apply btn bg-primary-600 text-white border-primary-600 hover:bg-primary-700 focus:ring-primary-500;
+    background-color: theme('colors.accent.primary.dark');
+    border-color: theme('colors.accent.primary.dark');
+    @apply btn text-white hover:opacity-90 shadow-lg;
+    box-shadow: 0 4px 14px 0 rgba(0, 179, 255, 0.2);
+  }
+  
+  html:not(.dark) .btn-primary {
+    background-color: theme('colors.accent.primary.light');
+    border-color: theme('colors.accent.primary.light');
+    box-shadow: 0 4px 14px 0 rgba(0, 122, 255, 0.2);
   }
   
   .btn-secondary {
-    @apply btn bg-white text-gray-700 border-gray-300 hover:bg-gray-50 focus:ring-primary-500;
+    background-color: theme('colors.dark.surface');
+    border-color: theme('colors.dark.border');
+    color: theme('colors.dark.text.primary');
+    @apply btn hover:opacity-90;
+  }
+  
+  html:not(.dark) .btn-secondary {
+    background-color: theme('colors.light.surface');
+    border-color: theme('colors.light.border');
+    color: theme('colors.light.text.primary');
+  }
+  
+  .btn-success {
+    background-color: theme('colors.accent.secondary.dark');
+    border-color: theme('colors.accent.secondary.dark');
+    @apply btn text-white hover:opacity-90 shadow-lg;
+    box-shadow: 0 4px 14px 0 rgba(38, 230, 166, 0.2);
+  }
+  
+  html:not(.dark) .btn-success {
+    background-color: theme('colors.accent.secondary.light');
+    border-color: theme('colors.accent.secondary.light');
+    box-shadow: 0 4px 14px 0 rgba(0, 200, 150, 0.2);
   }
   
   .btn-danger {
-    @apply btn bg-danger-600 text-white border-danger-600 hover:bg-danger-700 focus:ring-danger-500;
+    background-color: theme('colors.accent.error.dark');
+    border-color: theme('colors.accent.error.dark');
+    @apply btn text-white hover:opacity-90 shadow-lg;
+    box-shadow: 0 4px 14px 0 rgba(255, 107, 107, 0.2);
+  }
+  
+  html:not(.dark) .btn-danger {
+    background-color: theme('colors.accent.error.light');
+    border-color: theme('colors.accent.error.light');
+    box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.2);
   }
   
   .btn-sm {
@@ -39,36 +90,175 @@
     @apply px-6 py-3 text-base;
   }
   
+  /* Card Components */
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200;
+    background-color: theme('colors.dark.surface');
+    border-color: theme('colors.dark.border');
+    @apply rounded-xl shadow-xl border backdrop-blur-sm;
   }
   
+  html:not(.dark) .card {
+    background-color: theme('colors.light.surface');
+    border-color: theme('colors.light.border');
+  }
+  
+  .card-header {
+    border-bottom-color: theme('colors.dark.border');
+    @apply px-6 py-4 border-b;
+  }
+  
+  html:not(.dark) .card-header {
+    border-bottom-color: theme('colors.light.border');
+  }
+  
+  .card-body {
+    @apply p-6;
+  }
+  
+  /* Input Components */
   .input {
-    @apply block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 transition-colors;
+    background-color: theme('colors.dark.bg');
+    border-color: theme('colors.dark.border');
+    color: theme('colors.dark.text.primary');
+    @apply block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 transition-all duration-200;
+    --tw-ring-color: theme('colors.accent.primary.dark');
   }
   
+  .input::placeholder {
+    color: theme('colors.dark.text.secondary');
+  }
+  
+  html:not(.dark) .input {
+    background-color: theme('colors.light.bg');
+    border-color: theme('colors.light.border');
+    color: theme('colors.light.text.primary');
+    --tw-ring-color: theme('colors.accent.primary.light');
+  }
+  
+  html:not(.dark) .input::placeholder {
+    color: theme('colors.light.text.secondary');
+  }
+  
+  /* Badge Components */
   .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
-  
-  .badge-success {
-    @apply badge bg-success-100 text-success-800;
+    .badge-success {
+    background-color: rgba(38, 230, 166, 0.2);
+    color: theme('colors.accent.secondary.dark');
+    border-color: rgba(38, 230, 166, 0.3);
+    @apply badge border;
   }
   
-  .badge-danger {
-    @apply badge bg-danger-100 text-danger-800;
+  html:not(.dark) .badge-success {
+    background-color: rgba(0, 200, 150, 0.2);
+    color: theme('colors.accent.secondary.light');
+    border-color: rgba(0, 200, 150, 0.3);
   }
   
   .badge-warning {
-    @apply badge bg-yellow-100 text-yellow-800;
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border-color: rgba(255, 193, 7, 0.3);
+    @apply badge border;
+  }
+  
+  html:not(.dark) .badge-warning {
+    background-color: rgba(251, 191, 36, 0.2);
+    color: #f59e0b;
+    border-color: rgba(251, 191, 36, 0.3);
+  }
+  
+  .badge-error {
+    background-color: rgba(255, 107, 107, 0.2);
+    color: theme('colors.accent.error.dark');
+    border-color: rgba(255, 107, 107, 0.3);
+    @apply badge border;
+  }
+  
+  html:not(.dark) .badge-error {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: theme('colors.accent.error.light');
+    border-color: rgba(239, 68, 68, 0.3);
   }
   
   .badge-info {
-    @apply badge bg-blue-100 text-blue-800;
+    background-color: rgba(0, 179, 255, 0.2);
+    color: theme('colors.accent.primary.dark');
+    border-color: rgba(0, 179, 255, 0.3);
+    @apply badge border;
+  }
+  
+  html:not(.dark) .badge-info {
+    background-color: rgba(0, 122, 255, 0.2);
+    color: theme('colors.accent.primary.light');
+    border-color: rgba(0, 122, 255, 0.3);
+  }
+  
+  /* Status Indicators */
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+  
+  .status-healthy {
+    background-color: theme('colors.accent.secondary.dark');
+    @apply status-dot shadow-lg;
+    box-shadow: 0 0 8px rgba(38, 230, 166, 0.4);
+  }
+  
+  html:not(.dark) .status-healthy {
+    background-color: theme('colors.accent.secondary.light');
+    box-shadow: 0 0 8px rgba(0, 200, 150, 0.4);
+  }
+  
+  .status-unhealthy {
+    background-color: theme('colors.accent.error.dark');
+    @apply status-dot shadow-lg;
+    box-shadow: 0 0 8px rgba(255, 107, 107, 0.4);
+  }
+  
+  html:not(.dark) .status-unhealthy {
+    background-color: theme('colors.accent.error.light');
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+  }
+  
+  /* Navigation */
+  .nav-link {
+    @apply inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-all duration-200;
+  }
+  
+  .nav-link-active {
+    border-bottom-color: theme('colors.accent.primary.dark');
+    color: theme('colors.accent.primary.dark');
+    @apply nav-link;
+  }
+  
+  html:not(.dark) .nav-link-active {
+    border-bottom-color: theme('colors.accent.primary.light');
+    color: theme('colors.accent.primary.light');
+  }
+  
+  .nav-link-inactive {
+    color: theme('colors.dark.text.secondary');
+    @apply nav-link border-transparent;
+  }
+  
+  .nav-link-inactive:hover {
+    border-bottom-color: theme('colors.dark.border');
+    color: theme('colors.dark.text.primary');
+  }
+  
+  html:not(.dark) .nav-link-inactive {
+    color: theme('colors.light.text.secondary');
+  }
+  
+  html:not(.dark) .nav-link-inactive:hover {
+    border-bottom-color: theme('colors.light.border');
+    color: theme('colors.light.text.primary');
   }
 }
 
-/* Animations */
+/* Animations and Utilities */
 @layer utilities {
   .animate-fade-in {
     animation: fadeIn 0.3s ease-in-out;
@@ -77,8 +267,38 @@
   .animate-slide-up {
     animation: slideUp 0.3s ease-in-out;
   }
+  
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  
+  .text-gradient {
+    background: linear-gradient(to right, theme('colors.accent.primary.dark'), theme('colors.accent.secondary.dark'));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  html:not(.dark) .text-gradient {
+    background: linear-gradient(to right, theme('colors.accent.primary.light'), theme('colors.accent.secondary.light'));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .glass-effect {
+    background-color: rgba(26, 29, 36, 0.8);
+    border-color: rgba(42, 45, 54, 0.5);
+    @apply backdrop-blur-md border;
+  }
+  
+  html:not(.dark) .glass-effect {
+    background-color: rgba(243, 244, 246, 0.8);
+    border-color: rgba(209, 213, 219, 0.5);
+  }
 }
 
+/* Keyframe Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -97,4 +317,43 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 20px rgba(0, 179, 255, 0.2);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(0, 179, 255, 0.4);
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: theme('colors.dark.bg');
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: theme('colors.dark.border');
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: theme('colors.dark.text.secondary');
+}
+
+html:not(.dark) ::-webkit-scrollbar-track {
+  background-color: theme('colors.light.bg');
+}
+
+html:not(.dark) ::-webkit-scrollbar-thumb {
+  background-color: theme('colors.light.border');
+}
+
+html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+  background-color: theme('colors.light.text.secondary');
 }

@@ -1,9 +1,8 @@
-<template>
-  <div class="space-y-6">
+<template>  <div class="space-y-6">
     <!-- Header -->
     <div>
-      <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-      <p class="mt-2 text-gray-600">
+      <h1 class="text-3xl font-bold text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">Dashboard</h1>
+      <p class="mt-2 text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
         Welcome to RAG Engine - An experimental modular retrieval-augmented generation framework
       </p>
     </div>
@@ -40,14 +39,14 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Configuration Card -->
       <div class="card p-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Configuration</h2>
+        <h2 class="text-lg font-semibold mb-4 text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">Configuration</h2>
         <div v-if="systemStore.config" class="space-y-3">
           <ConfigItem 
             label="Embedding Provider" 
             :value="systemStore.config.embedding_provider" 
           />
           <ConfigItem 
-            label="Vector Store" 
+            label="Vector Store"
             :value="systemStore.config.vectorstore_provider" 
           />
           <ConfigItem 
@@ -62,22 +61,21 @@
             label="Retrieval Top-K" 
             :value="systemStore.config.retrieval_top_k" 
           />
-        </div>
-        <div v-else class="text-gray-500 text-center py-4">
+        </div>        <div v-else class="text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary text-center py-4">
           No configuration loaded
         </div>
       </div>
 
       <!-- Orchestrator Status -->
       <div class="card p-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Orchestrator</h2>
+        <h2 class="text-lg font-semibold mb-4 text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">Orchestrator</h2>
         <div v-if="systemStore.orchestratorStatus" class="space-y-3">
           <div class="text-sm">
-            <span class="font-medium text-gray-700">Type:</span>
-            <span class="ml-2 text-gray-900">{{ systemStore.orchestratorStatus.type || 'Default' }}</span>
+            <span class="font-medium text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">Type:</span>
+            <span class="ml-2 text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">{{ systemStore.orchestratorStatus.type || 'Default' }}</span>
           </div>
           <div class="text-sm">
-            <span class="font-medium text-gray-700">Status:</span>
+            <span class="font-medium text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">Status:</span>
             <span 
               :class="[
                 'ml-2 badge',
@@ -88,20 +86,20 @@
             </span>
           </div>
           <div v-if="systemStore.components" class="mt-4">
-            <span class="font-medium text-gray-700 text-sm">Components:</span>
+            <span class="font-medium text-sm text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">Components:</span>
             <div class="mt-2 grid grid-cols-2 gap-2">
               <div 
                 v-for="(component, type) in systemStore.components" 
                 :key="type"
-                class="text-xs p-2 bg-gray-50 rounded"
+                class="text-xs p-2 rounded bg-dark-bg border border-dark-border dark:bg-dark-bg dark:border-dark-border light:bg-light-bg light:border-light-border"
               >
-                <div class="font-medium capitalize">{{ type }}</div>
-                <div class="text-gray-600">{{ component.length || 0 }} available</div>
+                <div class="font-medium capitalize text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">{{ type }}</div>
+                <div class="text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">{{ component.length || 0 }} available</div>
               </div>
             </div>
           </div>
         </div>
-        <div v-else class="text-gray-500 text-center py-4">
+        <div v-else class="text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary text-center py-4">
           Orchestrator not initialized
         </div>
       </div>
@@ -109,7 +107,7 @@
 
     <!-- Quick Actions -->
     <div class="card p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+      <h2 class="text-lg font-semibold mb-4 text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">Quick Actions</h2>
       <div class="flex flex-wrap gap-4">
         <router-link to="/chat" class="btn btn-primary">
           <ChatBubbleLeftRightIcon class="w-4 h-4 mr-2" />

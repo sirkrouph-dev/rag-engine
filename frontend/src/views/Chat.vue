@@ -1,9 +1,8 @@
-<template>
-  <div class="h-[calc(100vh-8rem)] flex flex-col">
+<template>  <div class="h-[calc(100vh-8rem)] flex flex-col">
     <!-- Header -->
     <div class="mb-6">
-      <h1 class="text-3xl font-bold text-gray-900">Chat</h1>
-      <p class="mt-2 text-gray-600">
+      <h1 class="text-3xl font-bold text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">Chat</h1>
+      <p class="mt-2 text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
         Ask questions about your documents using the RAG Engine
       </p>
     </div>
@@ -11,24 +10,25 @@
     <!-- Chat Container -->
     <div class="flex-1 card flex flex-col">
       <!-- Pipeline Status Check -->
-      <div v-if="!systemStore.isPipelineBuilt" class="p-6 border-b border-gray-200">
-        <div class="rounded-md bg-yellow-50 p-4">
+      <div v-if="!systemStore.isPipelineBuilt" class="p-6 border-b border-dark-border dark:border-dark-border light:border-light-border">
+        <div class="rounded-md p-4 bg-yellow-500/10 border border-yellow-500/20">
           <div class="flex">
             <div class="flex-shrink-0">
               <ExclamationTriangleIcon class="h-5 w-5 text-yellow-400" />
             </div>
             <div class="ml-3">
-              <h3 class="text-sm font-medium text-yellow-800">
+              <h3 class="text-sm font-medium text-yellow-300">
                 Pipeline Not Ready
               </h3>
-              <div class="mt-2 text-sm text-yellow-700">
+              <div class="mt-2 text-sm text-yellow-400/80">
                 <p>The RAG pipeline needs to be built before you can start chatting.</p>
               </div>
               <div class="mt-4">
                 <button 
                   @click="buildPipeline" 
                   :disabled="systemStore.isLoading"
-                  class="btn btn-sm bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200"
+                  class="btn btn-sm"
+                  style="background-color: rgba(251, 191, 36, 0.2); color: #fbbf24; border-color: rgba(251, 191, 36, 0.3);"
                 >
                   <CogIcon class="w-4 h-4 mr-2" />
                   Build Pipeline
@@ -47,9 +47,8 @@
       >
         <!-- Welcome Message -->
         <div v-if="chatStore.messages.length === 0" class="text-center py-8">
-          <ChatBubbleLeftRightIcon class="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 class="text-lg font-medium text-gray-900 mb-2">Start a conversation</h3>
-          <p class="text-gray-600 mb-6 max-w-sm mx-auto">
+          <ChatBubbleLeftRightIcon class="mx-auto h-12 w-12 mb-4 text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary" />          <h3 class="text-lg font-medium mb-2 text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">Start a conversation</h3>
+          <p class="mb-6 max-w-sm mx-auto text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
             Ask questions about your documents and I'll help you find answers using the RAG Engine.
           </p>
           <div class="flex flex-wrap gap-2 justify-center">
@@ -72,21 +71,21 @@
 
         <!-- Loading Indicator -->
         <div v-if="chatStore.isLoading" class="flex justify-start">
-          <div class="max-w-xs lg:max-w-md px-4 py-3 rounded-lg bg-gray-100">
+          <div class="max-w-xs lg:max-w-md px-4 py-3 rounded-lg bg-dark-surface dark:bg-dark-surface light:bg-light-surface">
             <div class="flex items-center space-x-2">
               <div class="flex space-x-1">
-                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
-                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
-                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                <div class="w-2 h-2 rounded-full animate-bounce bg-dark-text-secondary dark:bg-dark-text-secondary light:bg-light-text-secondary" style="animation-delay: 0ms"></div>
+                <div class="w-2 h-2 rounded-full animate-bounce bg-dark-text-secondary dark:bg-dark-text-secondary light:bg-light-text-secondary" style="animation-delay: 150ms"></div>
+                <div class="w-2 h-2 rounded-full animate-bounce bg-dark-text-secondary dark:bg-dark-text-secondary light:bg-light-text-secondary" style="animation-delay: 300ms"></div>
               </div>
-              <span class="text-sm text-gray-600">Thinking...</span>
+              <span class="text-sm text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">Thinking...</span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Input Area -->
-      <div class="border-t border-gray-200 p-6">
+      <div class="border-t p-6 border-dark-border dark:border-dark-border light:border-light-border">
         <form @submit.prevent="sendMessage" class="flex space-x-4">
           <div class="flex-1">
             <input
@@ -119,8 +118,7 @@
               <TrashIcon class="w-4 h-4 mr-1" />
               Clear Chat
             </button>
-          </div>
-          <div class="text-xs text-gray-500">
+          </div>          <div class="text-xs text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
             {{ chatStore.messages.length }} messages
             <span v-if="chatStore.sessionId">
               • Session: {{ chatStore.sessionId.slice(-8) }}

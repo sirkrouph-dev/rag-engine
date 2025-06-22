@@ -2,8 +2,8 @@
   <div class="space-y-6">
     <!-- Header -->
     <div>
-      <h1 class="text-3xl font-bold text-gray-900">System Information</h1>
-      <p class="mt-2 text-gray-600">
+      <h1 class="text-3xl font-bold text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">System Information</h1>
+      <p class="mt-2 text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
         Detailed system status and configuration information
       </p>
     </div>
@@ -38,10 +38,10 @@
 
     <!-- Configuration Details -->
     <div class="card p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Configuration</h2>
+      <h2 class="text-lg font-semibold text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary mb-4">Configuration</h2>
       <div v-if="systemStore.config" class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h3 class="text-sm font-medium text-gray-900 mb-3">Core Components</h3>
+          <h3 class="text-sm font-medium text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary mb-3">Core Components</h3>
           <div class="space-y-2">
             <ConfigItem 
               label="Embedding Provider" 
@@ -62,7 +62,7 @@
           </div>
         </div>
         <div>
-          <h3 class="text-sm font-medium text-gray-900 mb-3">Settings</h3>
+          <h3 class="text-sm font-medium text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary mb-3">Settings</h3>
           <div class="space-y-2">
             <ConfigItem 
               label="Document Count" 
@@ -75,23 +75,23 @@
           </div>
         </div>
       </div>
-      <div v-else class="text-center py-8 text-gray-500">
+      <div v-else class="text-center py-8 text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
         No configuration data available
       </div>
     </div>
 
     <!-- Orchestrator Details -->
     <div class="card p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Orchestrator Status</h2>
+      <h2 class="text-lg font-semibold text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary mb-4">Orchestrator Status</h2>
       <div v-if="systemStore.orchestratorStatus" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="text-center p-4 bg-gray-50 rounded-lg">
-            <div class="text-2xl font-bold text-gray-900">
+          <div class="text-center p-4 bg-dark-bg border border-dark-border dark:bg-dark-bg dark:border-dark-border light:bg-light-bg light:border-light-border rounded-lg">
+            <div class="text-2xl font-bold text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">
               {{ systemStore.orchestratorStatus.type || 'Default' }}
             </div>
-            <div class="text-sm text-gray-600">Orchestrator Type</div>
+            <div class="text-sm text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">Orchestrator Type</div>
           </div>
-          <div class="text-center p-4 bg-gray-50 rounded-lg">
+          <div class="text-center p-4 bg-dark-bg border border-dark-border dark:bg-dark-bg dark:border-dark-border light:bg-light-bg light:border-light-border rounded-lg">
             <div 
               :class="[
                 'text-2xl font-bold capitalize',
@@ -100,46 +100,46 @@
             >
               {{ systemStore.orchestratorStatus.status }}
             </div>
-            <div class="text-sm text-gray-600">Status</div>
+            <div class="text-sm text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">Status</div>
           </div>
-          <div class="text-center p-4 bg-gray-50 rounded-lg">
-            <div class="text-2xl font-bold text-gray-900">
+          <div class="text-center p-4 bg-dark-bg border border-dark-border dark:bg-dark-bg dark:border-dark-border light:bg-light-bg light:border-light-border rounded-lg">
+            <div class="text-2xl font-bold text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">
               {{ componentsCount }}
             </div>
-            <div class="text-sm text-gray-600">Available Components</div>
+            <div class="text-sm text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">Available Components</div>
           </div>
         </div>
       </div>
-      <div v-else class="text-center py-8 text-gray-500">
+      <div v-else class="text-center py-8 text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
         Orchestrator not initialized
       </div>
     </div>
 
     <!-- Components Registry -->
     <div class="card p-6" v-if="systemStore.components">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Component Registry</h2>
+      <h2 class="text-lg font-semibold text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary mb-4">Component Registry</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div 
           v-for="(componentList, type) in systemStore.components" 
           :key="type"
-          class="border rounded-lg p-4 bg-gray-50"
+          class="border rounded-lg p-4 bg-dark-bg border border-dark-border dark:bg-dark-bg dark:border-dark-border light:bg-light-bg light:border-light-border"
         >
           <div class="flex items-center space-x-2 mb-3">
-            <component :is="getComponentIcon(type)" class="w-5 h-5 text-gray-600" />
-            <h3 class="font-medium text-gray-900 capitalize">{{ type }}</h3>
+            <component :is="getComponentIcon(type)" class="w-5 h-5 text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary" />
+            <h3 class="font-medium text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary capitalize">{{ type }}</h3>
           </div>
           
           <div class="space-y-1 mb-3">
             <div 
               v-for="component in componentList" 
               :key="component"
-              class="text-sm text-gray-700 font-mono bg-white px-2 py-1 rounded border"
+              class="text-sm text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary font-mono bg-white px-2 py-1 rounded border"
             >
               {{ component }}
             </div>
           </div>
           
-          <div class="text-xs text-gray-500">
+          <div class="text-xs text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
             {{ componentList.length }} {{ componentList.length === 1 ? 'component' : 'components' }}
           </div>
         </div>
@@ -148,7 +148,7 @@
 
     <!-- API Endpoints -->
     <div class="card p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">API Endpoints</h2>
+      <h2 class="text-lg font-semibold text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary mb-4">API Endpoints</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div 
           v-for="endpoint in apiEndpoints" 
@@ -167,9 +167,9 @@
               >
                 {{ endpoint.method }}
               </span>
-              <span class="text-sm font-mono text-gray-900">{{ endpoint.path }}</span>
+              <span class="text-sm font-mono text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">{{ endpoint.path }}</span>
             </div>
-            <div class="text-xs text-gray-600 mt-1">{{ endpoint.description }}</div>
+            <div class="text-xs text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary mt-1">{{ endpoint.description }}</div>
           </div>
           <button 
             @click="testEndpoint(endpoint)"
@@ -184,7 +184,7 @@
 
     <!-- Test Results -->
     <div v-if="testResults.length > 0" class="card p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Test Results</h2>
+      <h2 class="text-lg font-semibold text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary mb-4">Test Results</h2>
       <div class="space-y-2 max-h-64 overflow-y-auto">
         <div 
           v-for="(result, index) in testResults" 

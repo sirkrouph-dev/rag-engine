@@ -4,13 +4,13 @@
     <div class="flex items-center space-x-2">
       <div 
         :class="[
-          'w-2 h-2 rounded-full',
-          systemStore.systemHealth === 'healthy' ? 'bg-success-500' :
-          systemStore.systemHealth === 'unhealthy' ? 'bg-danger-500' :
-          'bg-yellow-500'
+          'status-dot',
+          systemStore.systemHealth === 'healthy' ? 'status-healthy' :
+          systemStore.systemHealth === 'unhealthy' ? 'status-unhealthy' :
+          'status-unknown'
         ]"
       />
-      <span class="text-sm text-gray-600 capitalize">
+      <span class="text-sm capitalize text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
         {{ systemStore.systemHealth }}
       </span>
     </div>
@@ -29,7 +29,7 @@
 
     <!-- Loading Indicator -->
     <div v-if="systemStore.isLoading" class="flex items-center">
-      <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
+      <div class="animate-spin rounded-full h-4 w-4 border-2 border-t-transparent border-accent-primary-dark dark:border-accent-primary-dark light:border-accent-primary-light"></div>
     </div>
   </div>
 </template>

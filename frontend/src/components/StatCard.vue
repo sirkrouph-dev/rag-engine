@@ -1,41 +1,18 @@
-<template>
-  <div class="card p-6">
-    <div class="flex items-center">
+<template>  <div class="card card-body">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-medium text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">{{ title }}</p>
+        <p class="text-2xl font-bold text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">{{ value }}</p>
+      </div>
       <div class="flex-shrink-0">
         <div 
           :class="[
-            'w-8 h-8 rounded-lg flex items-center justify-center',
-            status === 'success' || status === 'healthy' ? 'bg-success-100' :
-            status === 'warning' ? 'bg-yellow-100' :
-            status === 'error' || status === 'unhealthy' ? 'bg-danger-100' :
-            'bg-blue-100'
+            'w-12 h-12 rounded-lg flex items-center justify-center',
+            statusClass
           ]"
         >
-          <component 
-            :is="iconComponent" 
-            :class="[
-              'w-5 h-5',
-              status === 'success' || status === 'healthy' ? 'text-success-600' :
-              status === 'warning' ? 'text-yellow-600' :
-              status === 'error' || status === 'unhealthy' ? 'text-danger-600' :
-              'text-blue-600'
-            ]"
-          />
+          <component :is="iconComponent" class="w-6 h-6" />
         </div>
-      </div>
-      <div class="ml-4">
-        <h3 class="text-sm font-medium text-gray-500">{{ title }}</h3>
-        <p 
-          :class="[
-            'text-2xl font-semibold capitalize',
-            status === 'success' || status === 'healthy' ? 'text-success-900' :
-            status === 'warning' ? 'text-yellow-900' :
-            status === 'error' || status === 'unhealthy' ? 'text-danger-900' :
-            'text-gray-900'
-          ]"
-        >
-          {{ value }}
-        </p>
       </div>
     </div>
   </div>
@@ -48,6 +25,7 @@ import {
   CogIcon, 
   DocumentTextIcon, 
   Squares2X2Icon,
+  ChartBarIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
   XCircleIcon
@@ -64,12 +42,36 @@ const props = defineProps({
   },
   status: {
     type: String,
-    default: 'info'
+    default: 'info' // 'success', 'warning', 'error', 'info'
   },
   icon: {
     type: String,
-    default: 'ServerIcon'
+    default: 'ChartBarIcon'
   }
+})
+
+const statusClass = computed(() => {
+  const classes = {
+    'success': 'text-white',
+    'warning': 'text-white', 
+    'error': 'text-white',
+    'info': 'text-white',
+    'healthy': 'text-white',
+    'unhealthy': 'text-white',
+    'unknown': 'text-white'
+  }
+  
+  const bgClasses = {
+    'success': 'bg-accent-secondary-dark dark:bg-accent-secondary-dark light:bg-accent-secondary-light',
+    'warning': 'bg-yellow-500',
+    'error': 'bg-accent-error-dark dark:bg-accent-error-dark light:bg-accent-error-light',
+    'info': 'bg-accent-primary-dark dark:bg-accent-primary-dark light:bg-accent-primary-light',
+    'healthy': 'bg-accent-secondary-dark dark:bg-accent-secondary-dark light:bg-accent-secondary-light',
+    'unhealthy': 'bg-accent-error-dark dark:bg-accent-error-dark light:bg-accent-error-light',
+    'unknown': 'bg-yellow-500'
+  }
+  
+  return `${classes[props.status] || classes.info} ${bgClasses[props.status] || bgClasses.info}`
 })
 
 const iconComponent = computed(() => {
@@ -78,10 +80,11 @@ const iconComponent = computed(() => {
     CogIcon,
     DocumentTextIcon,
     Squares2X2Icon,
+    ChartBarIcon,
     CheckCircleIcon,
     ExclamationTriangleIcon,
     XCircleIcon
   }
-  return iconMap[props.icon] || ServerIcon
+  return iconMap[props.icon] || ChartBarIcon
 })
 </script>

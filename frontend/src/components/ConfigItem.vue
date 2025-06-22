@@ -1,7 +1,6 @@
-<template>
-  <div class="flex justify-between py-2">
-    <span class="text-sm font-medium text-gray-700">{{ label }}</span>
-    <span class="text-sm text-gray-900 font-mono">{{ value }}</span>
+<template>  <div class="flex justify-between py-2">
+    <span class="text-sm font-medium text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">{{ label }}</span>
+    <span class="text-sm font-mono text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">{{ value }}</span>
   </div>
 </template>
 

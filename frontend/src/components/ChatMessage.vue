@@ -4,31 +4,30 @@
       'flex',
       message.type === 'user' ? 'justify-end' : 'justify-start'
     ]"
-  >
-    <div 
+  >    <div 
       :class="[
         'max-w-xs lg:max-w-md px-4 py-3 rounded-lg relative group',
         message.type === 'user' 
-          ? 'bg-primary-600 text-white ml-auto' 
+          ? 'text-white ml-auto bg-accent-primary-dark dark:bg-accent-primary-dark light:bg-accent-primary-light' 
           : message.type === 'error'
-            ? 'bg-red-50 text-red-900 border border-red-200'
-            : 'bg-white border border-gray-200 shadow-sm'
+            ? 'border bg-accent-error-dark/10 text-accent-error-dark border-accent-error-dark/20 dark:bg-accent-error-dark/10 dark:text-accent-error-dark dark:border-accent-error-dark/20 light:bg-accent-error-light/10 light:text-accent-error-light light:border-accent-error-light/20'
+            : 'shadow-sm border bg-dark-surface border-dark-border text-dark-text-primary dark:bg-dark-surface dark:border-dark-border dark:text-dark-text-primary light:bg-light-surface light:border-light-border light:text-light-text-primary'
       ]"
     >
       <!-- Message Content -->
       <div class="text-sm whitespace-pre-wrap">{{ message.content }}</div>
       
       <!-- Sources (for assistant messages) -->
-      <div v-if="message.sources && message.sources.length > 0" class="mt-3 pt-3 border-t border-gray-200">
-        <div class="text-xs text-gray-600 mb-2">Sources:</div>
+      <div v-if="message.sources && message.sources.length > 0" class="mt-3 pt-3 border-t border-dark-border/20 dark:border-dark-border/20 light:border-light-border/20">
+        <div class="text-xs mb-2 text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">Sources:</div>
         <div class="space-y-1">
           <div 
             v-for="(source, index) in message.sources" 
             :key="index"
-            class="text-xs bg-gray-50 rounded px-2 py-1"
+            class="text-xs rounded px-2 py-1 bg-dark-bg dark:bg-dark-bg light:bg-light-bg"
           >
             {{ source.title || `Source ${index + 1}` }}
-            <span v-if="source.page" class="text-gray-500">
+            <span v-if="source.page" class="text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
               (Page {{ source.page }})
             </span>
           </div>
@@ -36,11 +35,11 @@
       </div>
       
       <!-- Timestamp and Actions -->
-      <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-200 border-opacity-20">
+      <div class="flex items-center justify-between mt-2 pt-2 border-t border-opacity-20 border-dark-border/20 dark:border-dark-border/20 light:border-light-border/20">
         <div 
           :class="[
             'text-xs',
-            message.type === 'user' ? 'text-primary-200' : 'text-gray-500'
+            message.type === 'user' ? 'text-white/70' : 'text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary'
           ]"
         >
           {{ formatTime(message.timestamp) }}

@@ -1,9 +1,8 @@
 <template>
-  <div class="space-y-6">
-    <!-- Header -->
+  <div class="space-y-6">    <!-- Header -->
     <div>
-      <h1 class="text-3xl font-bold text-gray-900">Documents</h1>
-      <p class="mt-2 text-gray-600">
+      <h1 class="text-3xl font-bold text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">Documents</h1>
+      <p class="mt-2 text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
         View and manage documents in your RAG pipeline
       </p>
     </div>
@@ -34,7 +33,7 @@
     <div class="card">
       <div class="px-6 py-4 border-b border-gray-200">
         <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-gray-900">Documents</h2>
+          <h2 class="text-lg font-semibold text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">Documents</h2>
           <button 
             @click="refreshData"
             :disabled="isLoading"
@@ -48,26 +47,26 @@
       
       <div v-if="isLoading" class="p-6 text-center">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-        <p class="mt-2 text-gray-600">Loading documents...</p>
+        <p class="mt-2 text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">Loading documents...</p>
       </div>
       
       <div v-else-if="documentsData?.documents?.length > 0" class="divide-y divide-gray-200">
         <div 
           v-for="(doc, index) in documentsData.documents" 
           :key="index"
-          class="p-6 hover:bg-gray-50 transition-colors"
+          class="p-6 hover:bg-dark-bg border border-dark-border dark:bg-dark-bg dark:border-dark-border light:bg-light-bg light:border-light-border transition-colors"
         >
           <div class="flex items-start justify-between">
             <div class="flex-1">
               <div class="flex items-center space-x-2">
-                <DocumentTextIcon class="w-5 h-5 text-gray-400" />
-                <h3 class="text-sm font-medium text-gray-900">
+                <DocumentTextIcon class="w-5 h-5 text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary" />
+                <h3 class="text-sm font-medium text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">
                   {{ getFileName(doc.path) }}
                 </h3>
                 <span class="badge badge-info">{{ doc.type }}</span>
               </div>
-              <p class="mt-1 text-sm text-gray-600">{{ doc.path }}</p>
-              <div class="mt-2 flex items-center space-x-4 text-xs text-gray-500">
+              <p class="mt-1 text-sm text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">{{ doc.path }}</p>
+              <div class="mt-2 flex items-center space-x-4 text-xs text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
                 <span>Size: {{ formatSize(doc.size) }}</span>
               </div>
             </div>
@@ -75,9 +74,9 @@
         </div>
       </div>
       
-      <div v-else class="p-6 text-center text-gray-500">
-        <DocumentTextIcon class="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
+      <div v-else class="p-6 text-center text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
+        <DocumentTextIcon class="mx-auto h-12 w-12 text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary mb-4" />
+        <h3 class="text-lg font-medium text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary mb-2">No documents found</h3>
         <p>No documents have been loaded into the pipeline yet.</p>
       </div>
     </div>
@@ -86,9 +85,9 @@
     <div class="card">
       <div class="px-6 py-4 border-b border-gray-200">
         <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-gray-900">Document Chunks</h2>
+          <h2 class="text-lg font-semibold text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">Document Chunks</h2>
           <div class="flex items-center space-x-2">
-            <span class="text-sm text-gray-600">
+            <span class="text-sm text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
               Showing {{ Math.min(chunksLimit, chunksData?.total || 0) }} of {{ chunksData?.total || 0 }}
             </span>
             <button 
@@ -106,41 +105,41 @@
         <div 
           v-for="(chunk, index) in displayedChunks" 
           :key="chunk.id"
-          class="p-6 hover:bg-gray-50 transition-colors"
+          class="p-6 hover:bg-dark-bg border border-dark-border dark:bg-dark-bg dark:border-dark-border light:bg-light-bg light:border-light-border transition-colors"
         >
           <div class="flex items-start justify-between mb-3">
             <div class="flex items-center space-x-2">
-              <Squares2X2Icon class="w-4 h-4 text-gray-400" />
-              <span class="text-sm font-medium text-gray-900">Chunk {{ chunk.id + 1 }}</span>
+              <Squares2X2Icon class="w-4 h-4 text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary" />
+              <span class="text-sm font-medium text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">Chunk {{ chunk.id + 1 }}</span>
             </div>
-            <div class="text-xs text-gray-500">
+            <div class="text-xs text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
               {{ chunk.content_preview?.length || 0 }} characters
             </div>
           </div>
           
-          <div class="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg font-mono">
+          <div class="text-sm text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary bg-dark-bg border border-dark-border dark:bg-dark-bg dark:border-dark-border light:bg-light-bg light:border-light-border p-3 rounded-lg font-mono">
             {{ chunk.content_preview }}
           </div>
           
           <div v-if="chunk.metadata && Object.keys(chunk.metadata).length > 0" class="mt-3">
-            <h4 class="text-xs font-medium text-gray-700 mb-2">Metadata:</h4>
+            <h4 class="text-xs font-medium text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary mb-2">Metadata:</h4>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
               <div 
                 v-for="(value, key) in chunk.metadata" 
                 :key="key"
                 class="text-xs"
               >
-                <span class="text-gray-600">{{ key }}:</span>
-                <span class="ml-1 text-gray-900">{{ value }}</span>
+                <span class="text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">{{ key }}:</span>
+                <span class="ml-1 text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary">{{ value }}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
       
-      <div v-else class="p-6 text-center text-gray-500">
-        <Squares2X2Icon class="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No chunks found</h3>
+      <div v-else class="p-6 text-center text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary">
+        <Squares2X2Icon class="mx-auto h-12 w-12 text-dark-text-secondary dark:text-dark-text-secondary light:text-light-text-secondary mb-4" />
+        <h3 class="text-lg font-medium text-dark-text-primary dark:text-dark-text-primary light:text-light-text-primary mb-2">No chunks found</h3>
         <p>Document chunks will appear here after building the pipeline.</p>
       </div>
     </div>
