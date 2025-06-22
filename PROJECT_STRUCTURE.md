@@ -18,6 +18,12 @@ rag_engine/
 │   ├── quickstart.md           # Quick start guide
 │   └── README.md               # Examples documentation
 │
+├── 📁 frontend/                # Vue.js frontend application
+│   ├── src/                    # Frontend source code
+│   ├── package.json            # Frontend dependencies
+│   ├── vite.config.js          # Vite configuration
+│   └── README.md               # Frontend documentation
+│
 ├── 📁 rag_engine/              # Main package
 │   ├── config/                 # Configuration modules
 │   ├── core/                   # Core RAG components
@@ -118,6 +124,21 @@ examples/
 │   └── hybrid.json            # Advanced features
 ├── scripts/                    # Example scripts
 └── quickstart.md               # Getting started guide
+```
+
+### `/frontend/` - Vue.js Frontend
+```
+frontend/
+├── src/                        # Frontend source code
+│   ├── components/             # Reusable Vue components
+│   ├── views/                  # Page components
+│   ├── stores/                 # State management (Pinia)
+│   ├── services/               # API integration layer
+│   └── style.css               # Global styles (Tailwind CSS)
+├── package.json                # Frontend dependencies
+├── vite.config.js              # Build configuration
+├── tailwind.config.js          # Styling configuration
+└── README.md                   # Frontend documentation
 ```
 
 ## 🔧 Development Workflow

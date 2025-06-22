@@ -19,10 +19,12 @@ A **modular framework** for building advanced Retrieval-Augmented Generation (RA
 - **Django REST**: Enterprise framework support
 - **Custom Servers**: Add your own server implementations
 
-### 🎨 **Web Interface Support**
-- **FastAPI**: API with auto-generated docs
-- **RESTful Endpoints**: Complete RAG API with chat, status, and management endpoints
-- **Extensible**: Framework for adding custom UI components
+### 🎨 **Modern Frontend Interface**
+- **Vue.js Application**: Beautiful, responsive web interface
+- **Interactive Chat**: Real-time chat with document sources
+- **Dashboard**: System monitoring and pipeline management
+- **Document Browser**: Explore documents and chunks
+- **System Monitor**: Comprehensive health and status display
 
 ### 🐳 **Deployment Capabilities**
 - **Docker**: Multi-stage builds with deployment configs
@@ -32,22 +34,28 @@ A **modular framework** for building advanced Retrieval-Augmented Generation (RA
 
 ## 🚀 **Quick Start**
 
+### Backend
 ```bash
 # Install dependencies
 pip install -r requirements.txt
 
-# Create a new project
-python -m rag_engine init my-rag-project
-
-# Start with default orchestrator
-python -m rag_engine serve --config config.json
-
-# Use hybrid retrieval
-python -m rag_engine serve --config config.json --orchestrator hybrid
-
-# Start FastAPI server
-python -m rag_engine serve --config config.json --framework fastapi
+# Start FastAPI server with example config
+python -m rag_engine serve --config examples/configs/example_config.json --port 8000
 ```
+
+### Frontend
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+Access the web interface at `http://localhost:3000` and the API at `http://localhost:8000/docs`.
 
 ## 📚 **Documentation**
 
@@ -63,6 +71,11 @@ python -m rag_engine serve --config config.json --framework fastapi
 ### **API Frameworks**
 - [**FastAPI**](docs/api/fastapi.md) - FastAPI implementation and features
 - [**Custom Servers**](docs/api/custom-servers.md) - Creating custom server implementations
+
+### **Frontend Interface**
+- [**Vue.js Frontend**](frontend/README.md) - Modern web interface documentation
+- [**Frontend Guide**](frontend/FRONTEND_GUIDE.md) - Complete frontend development guide
+- [**UI/UX Features**](frontend/FRONTEND_GUIDE.md#uiux-design-principles) - Design principles and user experience
 
 ### **Deployment**
 - [**Docker**](docs/deployment/docker.md) - Containerized deployment
