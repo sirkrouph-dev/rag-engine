@@ -195,7 +195,7 @@ class APIFrameworkFactory:
     def register_plugin(self, name: str, plugin_class: type) -> None:
         """Register a plugin that can be used across frameworks."""
         self._plugins[name] = plugin_class
-      def register_middleware(self, name: str, middleware_class: type) -> None:
+    def register_middleware(self, name: str, middleware_class: type) -> None:
         """Register middleware that can be used across frameworks."""
         self._middleware_registry[name] = middleware_class
     
