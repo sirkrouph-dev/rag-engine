@@ -34,11 +34,11 @@ if %errorlevel% == 0 (
 echo.
 echo 🚀 Starting RAG Engine (this may take 2-3 minutes the first time)...
 echo    Pulling images and starting services...
-docker-compose up -d
+docker-compose -f docker-compose.demo.yml up -d
 
 echo.
 echo ⏳ Waiting for services to be ready...
-timeout /t 30 /nobreak >nul
+timeout /t 45 /nobreak >nul
 
 echo.
 echo 🌐 Opening demo in your browser...
@@ -53,6 +53,6 @@ echo    2. Go to Pipeline → Build Pipeline
 echo    3. Go to Documents → Upload demo_document.md
 echo    4. Go to Chat → Ask "What is RAG?"
 echo.
-echo 🛑 To stop the demo: docker-compose down
+echo 🛑 To stop the demo: docker-compose -f docker-compose.demo.yml down
 echo.
 pause
