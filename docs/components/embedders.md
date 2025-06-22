@@ -89,6 +89,86 @@ Uses Cohere's embedding API.
 }
 ```
 
+### GeminiVertexEmbedder
+Uses Google's Gemini/Vertex AI embedding models. Supports both Gemini API and Vertex AI.
+
+**Configuration (Gemini API):**
+```json
+{
+  "embedder": {
+    "type": "gemini",
+    "config": {
+      "model": "models/embedding-001",
+      "api_key": "${GOOGLE_API_KEY}",
+      "task_type": "retrieval_document",
+      "batch_size": 100
+    }
+  }
+}
+```
+
+**Configuration (Vertex AI):**
+```json
+{
+  "embedder": {
+    "type": "gemini",
+    "config": {
+      "use_vertex": true,
+      "model": "textembedding-gecko@001",
+      "project": "${GOOGLE_CLOUD_PROJECT}",
+      "location": "us-central1",
+      "batch_size": 100
+    }
+  }
+}
+```
+
+**Configuration (Vertex AI with Service Account):**
+```json
+{
+  "embedder": {
+    "type": "gemini",
+    "config": {
+      "use_vertex": true,
+      "model": "textembedding-gecko@001",
+      "project": "your-gcp-project",
+      "location": "us-central1",
+      "credentials_path": "/path/to/service-account.json",
+      "batch_size": 100
+    }
+  }
+}
+```
+
+**Models:**
+- `models/embedding-001`: Gemini embedding model
+- `textembedding-gecko@001`: Vertex AI text embedding model
+- `textembedding-gecko@003`: Latest Vertex AI model (higher quality)
+
+### Authentication Options
+
+**Google Cloud Authentication Methods:**
+
+1. **Service Account File:**
+   ```json
+   {
+     "credentials_path": "/path/to/service-account.json"
+   }
+   ```
+
+2. **Environment Variable:**
+   ```bash
+   export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account.json"
+   ```
+
+3. **Default Application Credentials:**
+   ```bash
+   gcloud auth application-default login
+   ```
+
+4. **Compute Engine/GKE Service Account:**
+   - Automatically detected when running on GCP
+
 ## Usage Examples
 
 ### Basic Embedding
@@ -163,6 +243,7 @@ for idx in top_indices:
 | `all-MiniLM-L6-v2` | 384 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 | `all-mpnet-base-v2` | 768 | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
 | `text-embedding-ada-002` | 1536 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | N/A (API) |
+| `textembedding-gecko@001` | 768 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | N/A (API) |
 | `multilingual-e5-large` | 1024 | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
 
 ### Use Case Recommendations
@@ -198,6 +279,21 @@ for idx in top_indices:
     "type": "openai",
     "config": {
       "model": "text-embedding-ada-002"
+    }
+  }
+}
+```
+
+**Google Cloud/Vertex AI:**
+```json
+{
+  "embedder": {
+    "type": "gemini",
+    "config": {
+      "use_vertex": true,
+      "model": "textembedding-gecko@001",
+      "project": "your-gcp-project",
+      "location": "us-central1"
     }
   }
 }
@@ -492,6 +588,10 @@ pip install openai
 
 # Cohere
 pip install cohere
+
+# Google Gemini/Vertex AI
+pip install google-generativeai
+pip install google-cloud-aiplatform  # For Vertex AI support
 
 # Optimization
 pip install optimum onnxruntime

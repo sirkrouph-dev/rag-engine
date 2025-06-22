@@ -1,6 +1,10 @@
 # RAG Engine
 
-A **production-ready, modular framework** for building advanced Retrieval-Augmented Generation (RAG) pipelines with **multi-framework API support**, **modular orchestration**, and **enterprise-grade deployment capabilities**.
+> **⚠️ EXPERIMENTAL - WORK IN PROGRESS ⚠️**
+> 
+> **This framework is currently in active development and experimental phase. Features, APIs, and configurations may change significantly. Not recommended for production use yet.**
+
+A **modular framework** for building advanced Retrieval-Augmented Generation (RAG) pipelines with **multi-framework API support**, **modular orchestration**, and **comprehensive deployment capabilities**.
 
 ## ✨ **Key Features**
 
@@ -15,13 +19,13 @@ A **production-ready, modular framework** for building advanced Retrieval-Augmen
 - **Django REST**: Enterprise framework support
 - **Custom Servers**: Add your own server implementations
 
-### 🎨 **Web Interface Ready**
-- **FastAPI**: Production-ready API with auto-generated docs
+### 🎨 **Web Interface Support**
+- **FastAPI**: API with auto-generated docs
 - **RESTful Endpoints**: Complete RAG API with chat, status, and management endpoints
-- **Extensible**: Easy to add custom UI frameworks
+- **Extensible**: Framework for adding custom UI components
 
-### 🐳 **Production Ready**
-- **Docker**: Multi-stage builds with production configs
+### 🐳 **Deployment Capabilities**
+- **Docker**: Multi-stage builds with deployment configs
 - **Scaling**: Multi-worker support with load balancing
 - **Monitoring**: Health checks, metrics, and logging
 - **Security**: Authentication, CORS, rate limiting
@@ -47,6 +51,10 @@ python -m rag_engine serve --config config.json --framework fastapi
 
 ## 📚 **Documentation**
 
+### **Project Organization**
+- [**Project Structure**](PROJECT_STRUCTURE.md) - Complete directory organization
+- [**Examples**](examples/) - Configuration examples and sample scripts
+
 ### **Core Concepts**
 - [**Orchestration Guide**](docs/orchestration.md) - Modular orchestration layer
 - [**Configuration**](docs/configuration.md) - Config schemas and examples
@@ -58,7 +66,7 @@ python -m rag_engine serve --config config.json --framework fastapi
 
 ### **Deployment**
 - [**Docker**](docs/deployment/docker.md) - Containerized deployment
-- [**Production**](docs/deployment/production.md) - Production configuration
+- [**Development Deployment**](docs/deployment/production.md) - Development configuration
 - [**Scaling**](docs/deployment/scaling.md) - Multi-worker and load balancing
 - [**Monitoring**](docs/deployment/monitoring.md) - Health checks and metrics
 
@@ -81,7 +89,7 @@ python -m rag_engine serve --config config.json --framework fastapi
 |-----------|---------|-------------|
 | **Loaders** | txt, pdf, docx, html | Document loading and parsing |
 | **Chunkers** | fixed_size, sentence, token | Text segmentation strategies |
-| **Embedders** | huggingface, openai, local | Text embedding models |
+| **Embedders** | huggingface, openai, gemini/vertex-ai, local | Text embedding models |
 | **Vector Stores** | chroma, faiss, pinecone | Vector database backends |
 | **Retrievers** | similarity, bm25, hybrid, mmr | Document retrieval methods |
 | **LLMs** | openai, anthropic, local, ollama | Language model providers |
@@ -113,6 +121,19 @@ python -m rag_engine serve --config config.json --framework fastapi
 }
 ```
 
+### **Google Vertex AI**
+```json
+{
+  "embedding": {
+    "type": "gemini",
+    "use_vertex": true,
+    "model": "textembedding-gecko@001",
+    "project": "your-gcp-project",
+    "location": "us-central1"
+  }
+}
+```
+
 ## 🚀 **CLI Commands**
 
 ```bash
@@ -139,7 +160,7 @@ python -m rag_engine custom-server create --name myserver
 # Build and run
 docker-compose up --build
 
-# Production deployment
+# Development deployment (experimental)
 docker-compose -f docker-compose.production.yml up -d
 
 # Scale workers
@@ -162,12 +183,13 @@ python -m pytest tests/unit/test_chunker.py -v
 ## 📊 **Status**
 
 - ✅ **59/59 Tests Passing**
-- ✅ **Production Ready**
+- ⚠️ **Experimental Phase**
 - ✅ **Docker Support**
 - ✅ **Multi-Framework APIs**
 - ✅ **Modular Orchestration**
 - ✅ **Custom Server Support**
 - ✅ **Comprehensive Documentation**
+- ⚠️ **NOT Ready for Production**
 
 ## 🤝 **Contributing**
 
@@ -203,24 +225,24 @@ docker-compose up -d
 
 ## 🗺️ **Implementation Status**
 
-### ✅ **Production-Ready Components**
+### ✅ **Implemented Components**
 
 | Component | Status | Key Features |
 |-----------|--------|--------------|
-| **🏗️ Multi-Framework APIs** | ✅ **Production** | FastAPI, Flask, Django REST with seamless switching |
-| **🎨 Web UIs** | ✅ **Production** | Streamlit analytics + Gradio chat interfaces |
-| **⚙️ Core Pipeline** | ✅ **Production** | Modular, tested, enterprise-ready |
-| **🖥️ CLI Interface** | ✅ **Production** | Full command suite (init, build, chat, serve) |
-| **🔧 Configuration** | ✅ **Production** | Pydantic validation, env vars, YAML/JSON |
-| **📚 Document Loading** | ✅ **Production** | TXT, PDF, DOCX, HTML with error handling |
-| **🧩 Text Chunking** | ✅ **Production** | Token-based, recursive, configurable overlap |
-| **🔢 Embeddings** | ✅ **Production** | HuggingFace, OpenAI with batch processing |
-| **💾 Vector Storage** | ✅ **Production** | ChromaDB with persistence and querying |
-| **🤖 LLM Integration** | ✅ **Production** | OpenAI, HuggingFace, local models with provider factory |
-| **🔍 Retrieval System** | ✅ **Production** | Similarity search with configurable top-k |
-| **🧪 Testing Suite** | ✅ **Production** | 59 tests passing, unit + integration coverage |
-| **🐳 Docker Deployment** | ✅ **Production** | Multi-container setup with Nginx load balancing |
-| **📊 Health Monitoring** | ✅ **Production** | Health checks, status endpoints, error handling |
+| **🏗️ Multi-Framework APIs** | ✅ **Functional** | FastAPI, Flask, Django REST with seamless switching |
+| **🎨 Web UIs** | ✅ **Functional** | Streamlit analytics + Gradio chat interfaces |
+| **⚙️ Core Pipeline** | ✅ **Functional** | Modular, tested, configurable |
+| **🖥️ CLI Interface** | ✅ **Functional** | Full command suite (init, build, chat, serve) |
+| **🔧 Configuration** | ✅ **Functional** | Pydantic validation, env vars, YAML/JSON |
+| **📚 Document Loading** | ✅ **Functional** | TXT, PDF, DOCX, HTML with error handling |
+| **🧩 Text Chunking** | ✅ **Functional** | Token-based, recursive, configurable overlap |
+| **🔢 Embeddings** | ✅ **Functional** | HuggingFace, OpenAI, Vertex AI with batch processing |
+| **💾 Vector Storage** | ✅ **Functional** | ChromaDB with persistence and querying |
+| **🤖 LLM Integration** | ✅ **Functional** | OpenAI, HuggingFace, local models with provider factory |
+| **🔍 Retrieval System** | ✅ **Functional** | Similarity search with configurable top-k |
+| **🧪 Testing Suite** | ✅ **Functional** | 59 tests passing, unit + integration coverage |
+| **🐳 Docker Deployment** | ✅ **Functional** | Multi-container setup with Nginx load balancing |
+| **📊 Health Monitoring** | ✅ **Functional** | Health checks, status endpoints, error handling |
 
 ### 🟡 **Advanced Features (Ready for Extension)**
 
@@ -242,7 +264,7 @@ docker-compose up -d
 
 ## 🏗️ **API Framework Examples**
 
-### **FastAPI (Recommended for Production)**
+### **FastAPI (Recommended for Development)**
 ```bash
 # Start FastAPI server
 python -m rag_engine serve --config config.json --framework fastapi --port 8000
@@ -360,7 +382,7 @@ python -m pytest tests/integration/ -v # Integration tests only
 python -m pytest --cov=rag_engine tests/
 ```
 
-## 🐳 **Production Deployment**
+## 🐳 **Development Deployment**
 
 ### **Docker Single Container**
 ```bash
@@ -418,6 +440,8 @@ export RAG_CONFIG_PATH="/path/to/config.json"
 
 ### **Production Configuration**
 
+⚠️ **Note: This is an experimental configuration example. Not recommended for actual production use.**
+
 ```json
 {
   "documents": [
@@ -463,13 +487,14 @@ export RAG_CONFIG_PATH="/path/to/config.json"
 
 ## 🚀 **What's New in This Release**
 
-### **🎉 Major Production Features Added**
+### **🎉 Major Features Added**
 - ✅ **Multi-Framework API Support**: FastAPI, Flask, Django REST
 - ✅ **Integrated Web UIs**: Streamlit analytics + Gradio chat
-- ✅ **Production Deployment**: Docker + Compose + Nginx
+- ✅ **Docker Deployment**: Docker + Compose + Nginx
 - ✅ **Enterprise Features**: Health monitoring, error handling, CORS
 - ✅ **Comprehensive Testing**: 59 tests, zero warnings
 - ✅ **Professional CLI**: Full command suite with help system
+- ✅ **Vertex AI Support**: Google Cloud embeddings with service account auth
 
 ### **🔧 Technical Improvements**
 - ✅ **Lazy Loading**: Fast startup with on-demand pipeline initialization  
@@ -478,27 +503,27 @@ export RAG_CONFIG_PATH="/path/to/config.json"
 - ✅ **Configuration**: Environment variables with Pydantic validation
 - ✅ **Documentation**: Auto-generated API docs with examples
 
-## 🏆 **Ready for Production Use**
+## ⚠️ **Development Status**
 
-The RAG Engine is now a **complete, production-ready platform** suitable for:
+This RAG Engine is currently in **active development and experimental phase**:
 
-### **🏢 Enterprise Applications**
-- **Multi-tenant** document processing
-- **Scalable** API architecture  
-- **Monitored** deployments with health checks
-- **Secure** with authentication and rate limiting
-
-### **🧪 Research & Development**
+### **🧪 For Research & Development**
 - **Flexible** framework switching for experimentation
 - **Extensible** plugin architecture
 - **Interactive** UIs for rapid prototyping
-- **Comprehensive** testing for reliable results
+- **Comprehensive** testing for reliable development
 
-### **☁️ Cloud-Native Deployment**
+### **🏗️ Architecture Ready**
 - **Containerized** with Docker
 - **Load balanced** with Nginx
 - **Environment-aware** configuration
 - **Health monitored** for reliability
+
+### **⚠️ Not Yet Ready For**
+- **Production** workloads
+- **Enterprise** deployments
+- **Mission-critical** applications
+- **Long-term** stability guarantees
 
 ## 📞 **Getting Help**
 
@@ -514,9 +539,9 @@ The RAG Engine is now a **complete, production-ready platform** suitable for:
 
 ---
 
-**The RAG Engine: From Prototype to Production in Record Time!** 🚀
+**The RAG Engine: Experimental Framework for Advanced RAG Pipelines!** 🧪
 
-Built with modern architecture principles, comprehensive testing, and production-grade deployment capabilities. Ready to scale from development to enterprise use.
+Built with modern architecture principles, comprehensive testing, and flexible deployment capabilities. Currently in active development for research and experimentation.
 
-_Choose your framework. Deploy anywhere. Scale infinitely._ ✨
+_Experiment. Learn. Contribute._ ✨
 

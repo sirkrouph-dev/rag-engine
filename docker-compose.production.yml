@@ -1,4 +1,5 @@
-# Production Docker Compose with Scalable RAG Engine
+# ⚠️ EXPERIMENTAL - NOT FOR PRODUCTION USE ⚠️
+# Development Docker Compose with Scalable RAG Engine
 version: '3.8'
 
 services:

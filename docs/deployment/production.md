@@ -1,8 +1,12 @@
-# Production Deployment
+# Experimental Deployment
 
-This guide covers deploying the RAG Engine in production environments with focus on scalability, reliability, and security.
+> **⚠️ EXPERIMENTAL - NOT FOR PRODUCTION USE ⚠️**
+> 
+> **This deployment guide is for development and experimental purposes only. The RAG Engine is currently in active development and not recommended for production use.**
 
-## Production Architecture
+This guide covers deploying the RAG Engine in development/experimental environments with focus on testing scalability, reliability, and security features.
+
+## Experimental Architecture
 
 ### Single Server Deployment
 ```

@@ -1,0 +1,94 @@
+{
+  "name": "vertex_ai_rag_pipeline",
+  "description": "RAG pipeline using Google Vertex AI embeddings",
+  "orchestrator": {
+    "type": "default",
+    "config": {
+      "enable_reasoning": true,
+      "parallel_processing": true
+    }
+  },
+  "components": {
+    "loader": {
+      "type": "file",
+      "config": {
+        "file_path": "./data/documents",
+        "supported_formats": ["txt", "pdf", "docx"],
+        "encoding": "utf-8"
+      }
+    },
+    "chunker": {
+      "type": "semantic",
+      "config": {
+        "chunk_size": 512,
+        "chunk_overlap": 50,
+        "separator": "\n\n",
+        "min_chunk_size": 100
+      }
+    },
+    "embedder": {
+      "type": "gemini",
+      "config": {
+        "use_vertex": true,
+        "model": "textembedding-gecko@001",
+        "project": "${GOOGLE_CLOUD_PROJECT}",
+        "location": "us-central1",
+        "batch_size": 100,
+        "task_type": "retrieval_document"
+      }
+    },
+    "vectorstore": {
+      "type": "chroma",
+      "config": {
+        "persist_directory": "./vector_store",
+        "collection_name": "vertex_ai_docs",
+        "distance_metric": "cosine"
+      }
+    },
+    "retriever": {
+      "type": "similarity",
+      "config": {
+        "top_k": 5,
+        "score_threshold": 0.7,
+        "search_type": "similarity"
+      }
+    },
+    "llm": {
+      "type": "openai",
+      "config": {
+        "model": "gpt-3.5-turbo",
+        "api_key": "${OPENAI_API_KEY}",
+        "temperature": 0.1,
+        "max_tokens": 1000
+      }
+    },
+    "prompting": {
+      "type": "default",
+      "config": {
+        "system_prompt": "You are a helpful AI assistant. Use the provided context to answer questions accurately and concisely.",
+        "include_sources": true,
+        "max_context_length": 4000
+      }
+    }
+  },
+  "pipeline": {
+    "steps": [
+      "load_documents",
+      "chunk_documents", 
+      "embed_chunks",
+      "store_vectors",
+      "setup_retriever"
+    ],
+    "query_steps": [
+      "embed_query",
+      "retrieve_context", 
+      "generate_prompt",
+      "generate_response"
+    ]
+  },
+  "evaluation": {
+    "enabled": true,
+    "metrics": ["relevance", "coherence", "faithfulness"],
+    "test_queries": "./test_data/queries.json"
+  }
+}

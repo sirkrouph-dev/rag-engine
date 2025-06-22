@@ -115,14 +115,33 @@ class GeminiVertexEmbedProvider(EmbedProvider):
         self.genai.configure(api_key=api_key)
     
     def _setup_vertex(self, config: Dict[str, Any]):
-        """Set up Vertex AI client."""
+        """Set up Vertex AI client with proper authentication."""
         project = config.get("project") or os.environ.get("GOOGLE_CLOUD_PROJECT")
         location = config.get("location", "us-central1")
         
         if not project:
             raise ValueError("GCP project ID not provided in config or environment")
-            
-        self.aiplatform.init(project=project, location=location)
+        
+        # Handle different authentication methods
+        credentials_path = config.get("credentials_path") or os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+        
+        # Initialize with credentials if provided
+        init_kwargs = {
+            "project": project,
+            "location": location
+        }
+        
+        if credentials_path:
+            try:
+                from google.oauth2 import service_account
+                credentials = service_account.Credentials.from_service_account_file(credentials_path)
+                init_kwargs["credentials"] = credentials
+                logger.info(f"Using service account credentials from: {credentials_path}")
+            except Exception as e:
+                logger.warning(f"Failed to load service account credentials: {e}")
+                logger.info("Falling back to default authentication")
+        
+        self.aiplatform.init(**init_kwargs)
     
     def embed_query(self, text: str, config: Dict[str, Any]) -> List[float]:
         """Generate embeddings for a single query text."""
@@ -259,6 +278,7 @@ class HuggingFaceEmbedProvider(EmbedProvider):
 
 class DefaultEmbedder(BaseEmbedder):
     """Main embedder class that delegates to appropriate provider based on config."""
+    
     def __init__(self):
         self.providers = {
             "openai": OpenAIEmbedProvider(),
@@ -268,7 +288,8 @@ class DefaultEmbedder(BaseEmbedder):
     
     def _get_provider(self, config: Dict[str, Any]) -> EmbedProvider:
         """Get the configured embedding provider."""
-        provider_name = config.get("provider", "openai").lower()
+        provider_name = config.get("provider") or config.get("type", "openai")
+        provider_name = provider_name.lower()
         
         if provider_name not in self.providers:
             raise ValueError(f"Unsupported embedding provider: {provider_name}")

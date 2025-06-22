@@ -1,0 +1,17 @@
+This is a test document for the RAG engine. 
+
+The RAG engine is a modular framework for building Retrieval-Augmented Generation pipelines. It supports multiple document types including PDF, TXT, DOCX, and HTML files.
+
+Key features include:
+- Document loading with multiple file format support
+- Text chunking with various strategies
+- Multiple embedding providers like OpenAI and HuggingFace
+- Vector databases including FAISS, ChromaDB, and Pinecone
+- Advanced retrieval strategies
+- LLM integration for response generation
+
+The system uses configuration files to define all aspects of the pipeline, making it highly customizable and easy to experiment with different components.
+
+Installation is simple with pip install requirements. The system supports both CLI and API interfaces for different use cases.
+
+This document serves as a test to verify that the RAG pipeline can successfully load, chunk, embed, and retrieve information from text documents.

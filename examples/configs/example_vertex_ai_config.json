@@ -1,0 +1,36 @@
+{
+  "documents": [
+    {
+      "type": "directory",
+      "path": "./data/documents/",
+      "recursive": true
+    }
+  ],
+  "chunking": {
+    "method": "semantic",
+    "chunk_size": 512,
+    "chunk_overlap": 50
+  },
+  "embedding": {
+    "type": "gemini",
+    "use_vertex": true,
+    "model": "textembedding-gecko@001",
+    "project": "${GOOGLE_CLOUD_PROJECT}",
+    "location": "us-central1",
+    "batch_size": 100
+  },
+  "vectorstore": {
+    "type": "chroma",
+    "persist_directory": "./vector_store_vertex",
+    "collection_name": "vertex_docs"
+  },
+  "retrieval": {
+    "method": "similarity",
+    "top_k": 5
+  },
+  "llm": {
+    "type": "openai",
+    "model": "gpt-4",
+    "api_key": "${OPENAI_API_KEY}"
+  }
+}

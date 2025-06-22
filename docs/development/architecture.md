@@ -1,6 +1,10 @@
 # System Architecture
 
-The RAG Engine follows a modular, event-driven architecture designed for scalability, maintainability, and extensibility.
+> **⚠️ EXPERIMENTAL ARCHITECTURE ⚠️**
+> 
+> **This architecture is currently under active development. Components and interfaces may change significantly.**
+
+The RAG Engine follows a modular, event-driven architecture designed for flexibility, maintainability, and extensibility during the experimental phase.
 
 ## High-Level Architecture
 

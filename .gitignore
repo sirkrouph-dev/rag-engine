@@ -48,6 +48,16 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
+
+# Test artifacts
+test_vector_store*/
+*.sqlite3
+test_output/
+temp_*
+
+# Development files
+debug_*.py
+*_temp.py
 nosetests.xml
 coverage.xml
 *.cover
