@@ -108,6 +108,7 @@ def init(
 def serve(
     config: str = typer.Option(..., '--config', '-c', help='Path to config file'),
     framework: str = typer.Option("fastapi", '--framework', '-f', help='API framework (fastapi, flask, django)'),
+    orchestrator: str = typer.Option("default", '--orchestrator', '-o', help='Orchestrator type (default, hybrid, multimodal)'),
     host: str = typer.Option("0.0.0.0", '--host', help='Host to bind to'),
     port: int = typer.Option(8000, '--port', help='Port to bind to'),
     workers: int = typer.Option(1, '--workers', '-w', help='Number of worker processes (production scaling)'),
@@ -235,8 +236,7 @@ run_streamlit_ui('{config}')
         framework_info = enhanced_factory.get_framework_info(framework)
         if framework_info and framework_info.get('type') == 'custom':
             typer.echo(f"🔧 Using custom server: {framework_info.get('description', 'Custom server')}")
-        
-        # Create API customization configuration
+          # Create API customization configuration
         api_config = APICustomization(
             host=host,
             port=port,
@@ -258,11 +258,43 @@ run_streamlit_ui('{config}')
             }
         )
         
+        # Validate orchestrator type
+        from rag_engine.core.orchestration import OrchestratorFactory
+        
+        # Load alternative orchestrators
+        try:
+            import rag_engine.core.alternative_orchestrators
+            typer.echo("✅ Alternative orchestrators loaded")
+        except ImportError:
+            typer.echo("⚠️  Alternative orchestrators not available")
+        
+        available_orchestrators = OrchestratorFactory.list_orchestrators()
+        typer.echo(f"🧠 Available orchestrators: {', '.join(available_orchestrators)}")
+        
+        if orchestrator not in available_orchestrators:
+            typer.echo(f"❌ Orchestrator '{orchestrator}' not available.", err=True)
+            typer.echo(f"Available options: {', '.join(available_orchestrators)}", err=True)
+            raise typer.Exit(1)
+        
+        typer.echo(f"🧠 Using orchestrator: {orchestrator}")
+        
+        if orchestrator not in available_orchestrators:
+            typer.echo(f"❌ Orchestrator '{orchestrator}' not available.", err=True)
+            typer.echo(f"Available options: {', '.join(available_orchestrators)}", err=True)
+            raise typer.Exit(1)
+        
+        typer.echo(f"🧠 Using orchestrator: {orchestrator}")
+        
         # Load RAG configuration
         rag_config = load_config(config) if config else None
         
         # Create and start the enhanced server
-        server = enhanced_factory.create_server(framework, config=rag_config, api_config=api_config)
+        server = enhanced_factory.create_server(
+            framework, 
+            config=rag_config, 
+            api_config=api_config,
+            orchestrator_type=orchestrator
+        )
         
         # Production scaling info
         if workers > 1:

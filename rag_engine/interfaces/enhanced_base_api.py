@@ -94,10 +94,12 @@ class EnhancedBaseAPIServer(ABC):
     
     def __init__(self, config_path: Optional[str] = None, 
                  config: Optional[Any] = None,
-                 api_config: Optional[APICustomization] = None):
+                 api_config: Optional[APICustomization] = None,
+                 orchestrator_type: str = "default"):
         """Initialize with enhanced configuration."""
         self.config = config
         self.api_config = api_config or APICustomization()
+        self.orchestrator_type = orchestrator_type
         self.middleware_handlers = {}
         self.custom_validators = {}
         self.request_interceptors = []
@@ -193,22 +195,21 @@ class APIFrameworkFactory:
     def register_plugin(self, name: str, plugin_class: type) -> None:
         """Register a plugin that can be used across frameworks."""
         self._plugins[name] = plugin_class
-    
-    def register_middleware(self, name: str, middleware_class: type) -> None:
+      def register_middleware(self, name: str, middleware_class: type) -> None:
         """Register middleware that can be used across frameworks."""
         self._middleware_registry[name] = middleware_class
     
     def create_server(self, framework: str, config: Any = None, 
                      api_config: APICustomization = None, 
                      plugins: List[str] = None,
+                     orchestrator_type: str = "default",
                      **custom_kwargs) -> EnhancedBaseAPIServer:
         """Create server with plugins and customization."""
         if framework not in self._frameworks:
             raise ValueError(f"Framework '{framework}' not registered. Available: {self.list_frameworks()}")
         
         framework_info = self._frameworks[framework]
-        
-        # Handle custom servers differently
+          # Handle custom servers differently
         if framework_info['type'] == 'custom':
             # Use wrapper for custom servers
             custom_server_info = self._custom_servers.get(framework, {})
@@ -218,11 +219,16 @@ class APIFrameworkFactory:
                 custom_server_class=framework_info['class'],
                 config=config,
                 api_config=api_config,
+                orchestrator_type=orchestrator_type,
                 **merged_kwargs
             )
         else:
             # Use built-in servers
-            server = framework_info['class'](config=config, api_config=api_config)
+            server = framework_info['class'](
+                config=config, 
+                api_config=api_config,
+                orchestrator_type=orchestrator_type
+            )
         
         # Apply plugins
         if plugins:

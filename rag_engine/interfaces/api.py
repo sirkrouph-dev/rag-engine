@@ -148,6 +148,52 @@ class FastAPIServer(BaseAPIServer):
                     "total": len(self.pipeline.chunks)
                 }
             return {"chunks": [], "total": 0}
+        
+        # Add orchestrator management endpoints
+        @self.app.get("/orchestrator/status", tags=["Orchestrator"])
+        async def orchestrator_status():
+            """Get orchestrator status and component information."""
+            if self.orchestrator:
+                return self.orchestrator.get_status()
+            return {"error": "Orchestrator not initialized"}
+        
+        @self.app.get("/orchestrator/components", tags=["Orchestrator"])
+        async def list_components():
+            """List available components."""
+            from rag_engine.core.orchestration import get_global_registry
+            registry = get_global_registry()
+            return registry.list_components()
+        
+        @self.app.post("/orchestrator/rebuild", tags=["Orchestrator"])
+        async def rebuild_orchestrator():
+            """Rebuild the orchestrator with current configuration."""
+            try:
+                self._is_built = False
+                self.orchestrator = None
+                if self.ensure_orchestrator_built():
+                    return {"message": "Orchestrator rebuilt successfully", "status": "success"}
+                else:
+                    return {"error": "Failed to rebuild orchestrator", "status": "error"}
+            except Exception as e:
+                return {"error": str(e), "status": "error"}
+        
+        @self.app.get("/orchestrator/components/{component_type}", tags=["Orchestrator"])
+        async def get_component_status(component_type: str):
+            """Get status of a specific component type."""
+            if self.orchestrator and hasattr(self.orchestrator, 'components'):
+                component = self.orchestrator.components.get(component_type)
+                if component:
+                    return {
+                        "component_type": component_type,
+                        "status": "active",
+                        "class": component.__class__.__name__
+                    }
+                else:
+                    return {
+                        "component_type": component_type,
+                        "status": "not_found"
+                    }
+            return {"error": "Orchestrator not initialized"}
     
     def start_server(self, host: str = "0.0.0.0", port: int = 8000, **kwargs) -> None:
         """Start the FastAPI server with production-ready configuration."""

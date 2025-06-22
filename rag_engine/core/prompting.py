@@ -35,3 +35,11 @@ User: {query}"""
             "context": context,
             "query": config.get("query", "")
         })
+
+def get_prompter(config: Dict[str, Any]) -> BasePrompting:
+    """Factory function to get the appropriate prompter."""
+    template_type = config.get("template", "default")
+    
+    # For now, just return DefaultPrompter regardless of template type
+    # In the future, different template types could return different implementations
+    return DefaultPrompter()
