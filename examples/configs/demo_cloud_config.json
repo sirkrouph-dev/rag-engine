@@ -1,0 +1,33 @@
+{
+  "orchestrator_type": "default",
+  "embedding_provider": "sentence_transformers",
+  "embedding_config": {
+    "model_name": "all-MiniLM-L6-v2",
+    "device": "cpu"
+  },
+  "vectorstore_provider": "simple",
+  "vectorstore_config": {
+    "storage_type": "memory"
+  },
+  "llm_provider": "openai",
+  "llm_config": {
+    "api_key": "YOUR_OPENAI_API_KEY_HERE",
+    "model": "gpt-3.5-turbo",
+    "temperature": 0.7,
+    "max_tokens": 1000
+  },
+  "chunking_method": "simple",
+  "chunking_config": {
+    "chunk_size": 300,
+    "chunk_overlap": 30
+  },
+  "retrieval_top_k": 3,
+  "api": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "cors_origins": ["*"]
+  },
+  "logging": {
+    "level": "INFO"
+  }
+}

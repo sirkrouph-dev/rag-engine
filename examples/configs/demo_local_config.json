@@ -1,0 +1,38 @@
+{
+  "orchestrator_type": "default",
+  "embedding_provider": "sentence_transformers",
+  "embedding_config": {
+    "model_name": "all-MiniLM-L6-v2",
+    "device": "cpu"
+  },
+  "vectorstore_provider": "faiss",
+  "vectorstore_config": {
+    "index_type": "FlatIP",
+    "dimension": 384,
+    "persist_path": null
+  },
+  "llm_provider": "ollama",
+  "llm_config": {
+    "base_url": "http://localhost:11434",
+    "model": "llama3.2:1b",
+    "temperature": 0.7,
+    "max_tokens": 1000,
+    "timeout": 30
+  },
+  "chunking_method": "recursive",
+  "chunking_config": {
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "separators": ["\n\n", "\n", " ", ""]
+  },
+  "retrieval_top_k": 3,
+  "api": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "cors_origins": ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"]
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  }
+}
