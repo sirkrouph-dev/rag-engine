@@ -34,3 +34,14 @@ qdrant-client>=1.7.0
 # Testing
 pytest>=8.0.0
 pytest-asyncio>=0.23.0
+
+# Web Frameworks (optional - install as needed)
+uvicorn>=0.27.0  # For FastAPI
+flask>=3.0.0
+flask-cors>=4.0.0
+django>=5.0.0
+djangorestframework>=3.14.0
+
+# UI Frameworks (optional - install as needed)
+streamlit>=1.35.0
+gradio>=4.25.0

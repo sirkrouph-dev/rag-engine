@@ -1,0 +1,31 @@
+{
+  "documents": [
+    { "type": "txt", "path": "./test_doc.txt" }
+  ],
+  "chunking": { 
+    "method": "fixed", 
+    "max_tokens": 200, 
+    "overlap": 20 
+  },
+  "embedding": { 
+    "provider": "huggingface",
+    "model": "sentence-transformers/all-MiniLM-L6-v2"
+  },
+  "vectorstore": { 
+    "provider": "chroma", 
+    "persist_directory": "./test_vector_store_simple"
+  },  
+  "retrieval": { 
+    "top_k": 3
+  },
+  "prompting": { 
+    "system_prompt": "You are a helpful assistant." 
+  },  "llm": { 
+    "provider": "huggingface", 
+    "model": "microsoft/DialoGPT-medium",
+    "temperature": 0.7
+  },
+  "output": {
+    "method": "console"
+  }
+}

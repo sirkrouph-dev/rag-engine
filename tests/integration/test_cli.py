@@ -80,11 +80,10 @@ class TestCLIIntegration:
             [sys.executable, "-m", "rag_engine", "build", "--help"],
             capture_output=True,
             text=True,
-            cwd=os.getcwd()
-        )
+            cwd=os.getcwd()        )
         
         assert result.returncode == 0
-        assert "Build vector DB from config file" in result.stdout
+        assert "Build vector database from configuration" in result.stdout
 
     def test_cli_chat_help(self):
         """Test chat command help."""
@@ -92,11 +91,10 @@ class TestCLIIntegration:
             [sys.executable, "-m", "rag_engine", "chat", "--help"],
             capture_output=True,
             text=True,
-            cwd=os.getcwd()
-        )
+            cwd=os.getcwd()        )
         
         assert result.returncode == 0
-        assert "Chat with your data" in result.stdout
+        assert "Start interactive chat with your data" in result.stdout
 
     @pytest.mark.integration
     def test_cli_build_command_mocked(self, cli_config):
@@ -104,12 +102,11 @@ class TestCLIIntegration:
         with patch('rag_engine.core.embedder.HuggingFaceEmbedProvider.embed_documents') as mock_embed:
             with patch('rag_engine.core.vectorstore.ChromaDBVectorStore.add') as mock_add:
                 with patch('rag_engine.core.vectorstore.ChromaDBVectorStore.persist') as mock_persist:
-                    
-                    # Mock embedding response
+                      # Mock embedding response
                     mock_embed.return_value = [[0.1] * 384, [0.2] * 384]
                     
                     result = subprocess.run(
-                        [sys.executable, "-m", "rag_engine", "build", cli_config],
+                        [sys.executable, "-m", "rag_engine", "build", "--config", cli_config],
                         capture_output=True,
                         text=True,
                         cwd=os.getcwd(),
@@ -118,12 +115,12 @@ class TestCLIIntegration:
                     
                     # Check that command executed without critical errors
                     # Note: May return non-zero due to mocking, but should not crash
-                    assert "Starting RAG pipeline build" in result.stdout or result.returncode in [0, 1]
+                    assert "Building RAG pipeline with config" in result.stdout or result.returncode in [0, 1]
 
     def test_cli_build_missing_config(self):
         """Test CLI build command with missing config file."""
         result = subprocess.run(
-            [sys.executable, "-m", "rag_engine", "build", "nonexistent_config.json"],
+            [sys.executable, "-m", "rag_engine", "build", "--config", "nonexistent_config.json"],
             capture_output=True,
             text=True,
             cwd=os.getcwd()
@@ -133,14 +130,13 @@ class TestCLIIntegration:
         # Should show error about missing file
 
     def test_cli_build_invalid_config(self, temp_dir):
-        """Test CLI build command with invalid config file."""
-        # Create invalid JSON config
+        """Test CLI build command with invalid config file."""        # Create invalid JSON config
         invalid_config_path = os.path.join(temp_dir, "invalid_config.json")
         with open(invalid_config_path, "w") as f:
             f.write("{ invalid json }")
         
         result = subprocess.run(
-            [sys.executable, "-m", "rag_engine", "build", invalid_config_path],
+            [sys.executable, "-m", "rag_engine", "build", "--config", invalid_config_path],
             capture_output=True,
             text=True,
             cwd=os.getcwd()
