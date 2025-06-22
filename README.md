@@ -1,53 +1,185 @@
 # RAG Engine
 
-A **production-ready, modular framework** for building advanced Retrieval-Augmented Generation (RAG) pipelines with **multi-framework API support**, **web UIs**, and **enterprise-grade deployment capabilities**.
-
-> **🎉 Production-Ready Multi-Framework Platform!** 
-> 
-> **Full Stack RAG Solution** with FastAPI, Flask, Django REST support, Streamlit/Gradio UIs, Docker deployment, comprehensive testing (59/59 tests passing), and enterprise features like health monitoring, load balancing, and configuration management.
->
-> _Built with ❤️ and GitHub Copilot - Professional-grade RAG infrastructure._
+A **production-ready, modular framework** for building advanced Retrieval-Augmented Generation (RAG) pipelines with **multi-framework API support**, **modular orchestration**, and **enterprise-grade deployment capabilities**.
 
 ## ✨ **Key Features**
 
-### 🏗️ **Multi-Framework API Architecture**
-- **FastAPI**: High-performance async API with auto-generated OpenAPI docs
-- **Flask**: Lightweight web framework with CORS support  
-- **Django REST**: Enterprise framework (structure ready)
-- **Seamless switching**: Choose your preferred framework with `--framework` flag
+### 🏗️ **Modular Architecture**
+- **Component Registry**: Swap retrievers, LLMs, embedders without code changes
+- **Orchestration Layer**: Default, hybrid, and multi-modal RAG strategies
+- **Configuration-Driven**: Control everything via JSON/YAML configs
 
-### 🎨 **Integrated Web UIs**
-- **Streamlit**: Interactive analytics dashboard with chat interface
-- **Gradio**: Simple, elegant chat interface for model interaction
-- **Configurable**: Launch any UI with `--ui streamlit|gradio`
+### � **Multi-Framework APIs**
+- **FastAPI**: High-performance async API with auto-generated docs
+- **Flask**: Lightweight web framework with CORS support
+- **Django REST**: Enterprise framework support
+- **Custom Servers**: Add your own server implementations
 
-### ⚙️ **Production-Ready Core**
-- **Modular pipeline**: Chunker, Embedder, VectorStore, LLM components
-- **Configuration-as-code**: JSON/YAML configs with environment variables
-- **Lazy loading**: Fast startup with on-demand pipeline initialization
-- **Health monitoring**: `/health`, `/status`, `/build` endpoints
-- **Error handling**: Graceful degradation throughout the system
+### 🎨 **Web Interface Ready**
+- **FastAPI**: Production-ready API with auto-generated docs
+- **RESTful Endpoints**: Complete RAG API with chat, status, and management endpoints
+- **Extensible**: Easy to add custom UI frameworks
+
+### 🐳 **Production Ready**
+- **Docker**: Multi-stage builds with production configs
+- **Scaling**: Multi-worker support with load balancing
+- **Monitoring**: Health checks, metrics, and logging
+- **Security**: Authentication, CORS, rate limiting
 
 ## 🚀 **Quick Start**
 
-### **Simple API Server**
 ```bash
 # Install dependencies
 pip install -r requirements.txt
 
-# Start FastAPI server (recommended)
+# Create a new project
+python -m rag_engine init my-rag-project
+
+# Start with default orchestrator
+python -m rag_engine serve --config config.json
+
+# Use hybrid retrieval
+python -m rag_engine serve --config config.json --orchestrator hybrid
+
+# Start FastAPI server
 python -m rag_engine serve --config config.json --framework fastapi
-
-# Or Flask
-python -m rag_engine serve --config config.json --framework flask
-
-# With Streamlit UI
-python -m rag_engine serve --config config.json --ui streamlit
 ```
 
-### **Test the API**
+## 📚 **Documentation**
+
+### **Core Concepts**
+- [**Orchestration Guide**](docs/orchestration.md) - Modular orchestration layer
+- [**Configuration**](docs/configuration.md) - Config schemas and examples
+- [**Components**](docs/components/) - Individual component documentation
+
+### **API Frameworks**
+- [**FastAPI**](docs/api/fastapi.md) - FastAPI implementation and features
+- [**Custom Servers**](docs/api/custom-servers.md) - Creating custom server implementations
+
+### **Deployment**
+- [**Docker**](docs/deployment/docker.md) - Containerized deployment
+- [**Production**](docs/deployment/production.md) - Production configuration
+- [**Scaling**](docs/deployment/scaling.md) - Multi-worker and load balancing
+- [**Monitoring**](docs/deployment/monitoring.md) - Health checks and metrics
+
+### **Development**
+- [**Contributing**](docs/development/contributing.md) - Development guidelines
+- [**Testing**](docs/development/testing.md) - Test suite and coverage
+- [**Architecture**](docs/development/architecture.md) - System architecture
+
+## 🎯 **Use Cases**
+
+- **Document Q&A**: Query your documents with natural language
+- **Knowledge Bases**: Build searchable knowledge repositories
+- **Research Tools**: Advanced retrieval for research workflows
+- **Customer Support**: AI-powered support with document grounding
+- **Content Analysis**: Extract insights from large document collections
+
+## 📦 **Components**
+
+| Component | Options | Description |
+|-----------|---------|-------------|
+| **Loaders** | txt, pdf, docx, html | Document loading and parsing |
+| **Chunkers** | fixed_size, sentence, token | Text segmentation strategies |
+| **Embedders** | huggingface, openai, local | Text embedding models |
+| **Vector Stores** | chroma, faiss, pinecone | Vector database backends |
+| **Retrievers** | similarity, bm25, hybrid, mmr | Document retrieval methods |
+| **LLMs** | openai, anthropic, local, ollama | Language model providers |
+| **Orchestrators** | default, hybrid, multimodal | RAG pipeline strategies |
+
+## � **Example Configurations**
+
+### **Basic Setup**
+```json
+{
+  "documents": [{"path": "docs/", "type": "directory"}],
+  "chunking": {"method": "fixed_size", "chunk_size": 500},
+  "embedding": {"provider": "huggingface", "model": "all-MiniLM-L6-v2"},
+  "vectorstore": {"provider": "chroma", "persist_directory": "./db"},
+  "retrieval": {"method": "similarity", "top_k": 5},
+  "llm": {"provider": "openai", "model": "gpt-4"}
+}
+```
+
+### **Hybrid Retrieval**
+```json
+{
+  "retrieval": {
+    "method": "hybrid",
+    "semantic_weight": 0.7,
+    "bm25_weight": 0.3,
+    "top_k": 10
+  }
+}
+```
+
+## 🚀 **CLI Commands**
+
 ```bash
-# Health check
+# Initialize new project
+python -m rag_engine init [project-name]
+
+# Build vector database
+python -m rag_engine build --config config.json
+
+# Interactive chat
+python -m rag_engine chat --config config.json
+
+# Serve API
+python -m rag_engine serve --config config.json [options]
+
+# Custom server management
+python -m rag_engine custom-server list
+python -m rag_engine custom-server create --name myserver
+```
+
+## 🐳 **Docker Deployment**
+
+```bash
+# Build and run
+docker-compose up --build
+
+# Production deployment
+docker-compose -f docker-compose.production.yml up -d
+
+# Scale workers
+docker-compose up --scale rag-engine=3
+```
+
+## 🧪 **Testing**
+
+```bash
+# Run all tests
+python -m pytest
+
+# Run with coverage
+python -m pytest --cov=rag_engine
+
+# Test specific component
+python -m pytest tests/unit/test_chunker.py -v
+```
+
+## 📊 **Status**
+
+- ✅ **59/59 Tests Passing**
+- ✅ **Production Ready**
+- ✅ **Docker Support**
+- ✅ **Multi-Framework APIs**
+- ✅ **Modular Orchestration**
+- ✅ **Custom Server Support**
+- ✅ **Comprehensive Documentation**
+
+## 🤝 **Contributing**
+
+See [Contributing Guide](docs/development/contributing.md) for development setup, coding standards, and contribution guidelines.
+
+## 📄 **License**
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+---
+
+**Built with ❤️ and GitHub Copilot** - Professional-grade RAG infrastructure for modern applications.
 curl http://localhost:8000/health
 
 # Build pipeline  
