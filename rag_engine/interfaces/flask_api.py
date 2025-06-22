@@ -127,19 +127,83 @@ class FlaskServer(BaseAPIServer):
             return jsonify({"error": "Internal server error", "status": "error"}), 500
     
     def start_server(self, host: str = "0.0.0.0", port: int = 8000, **kwargs) -> None:
-        """Start the Flask server."""
+        """Start the Flask server with production-ready configuration."""
         if not self.app:
             self.create_app()
         
-        print(f"🚀 Starting Flask server on http://{host}:{port}")
-        print(f"📚 API Endpoints: http://{host}:{port}/")
+        workers = kwargs.get("workers", 1)
+        debug = kwargs.get("debug", False)
         
-        self.app.run(
-            host=host,
-            port=port,
-            debug=kwargs.get("debug", False),
-            threaded=kwargs.get("threaded", True)
-        )
+        print(f"🚀 Starting Flask server on http://{host}:{port}")
+        print(f"� Workers: {workers}")
+        print(f"�📚 API Endpoints: http://{host}:{port}/")
+        
+        if workers > 1:
+            # Production mode with Gunicorn
+            print(f"🏭 Production mode: {workers} workers using Gunicorn")
+            try:
+                import subprocess
+                import sys
+                
+                cmd = [
+                    sys.executable, "-m", "gunicorn",
+                    "--workers", str(workers),
+                    "--worker-class", "gthread",
+                    "--threads", "2",
+                    "--bind", f"{host}:{port}",
+                    "--access-logfile", "-",
+                    "--error-logfile", "-",
+                    "rag_engine.interfaces.flask_api:create_production_flask_app()"
+                ]
+                
+                subprocess.run(cmd)
+            except ImportError:
+                print("⚠️  Gunicorn not available, falling back to development server")
+                self.app.run(
+                    host=host,
+                    port=port,
+                    debug=debug,
+                    threaded=True
+                )
+        else:
+            # Development mode
+            print("🛠️  Development mode: Single threaded Flask server")
+            self.app.run(
+                host=host,
+                port=port,
+                debug=debug,
+                threaded=kwargs.get("threaded", True)
+            )
+
+
+def create_production_flask_app():
+    """Factory function to create a Flask app for production deployment."""
+    import os
+    from ..config.loader import ConfigLoader
+    
+    # Load config from environment or default
+    config_path = os.getenv("RAG_CONFIG_PATH", "config/production.json")
+    
+    try:
+        config = ConfigLoader.load_config(config_path)
+        server = FlaskServer(config=config)
+        return server.create_app()
+    except Exception as e:
+        # Fallback to minimal app if config loading fails
+        print(f"⚠️  Config loading failed: {e}")
+        from flask import Flask
+        
+        minimal_app = Flask(__name__)
+        
+        @minimal_app.route("/health")
+        def health():
+            return {"status": "degraded", "message": "Configuration required"}
+        
+        @minimal_app.route("/")
+        def root():
+            return {"message": "RAG Engine Flask API - Configuration required"}
+        
+        return minimal_app
 
 
 # Register Flask server with the factory

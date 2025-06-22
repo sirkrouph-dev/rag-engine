@@ -35,12 +35,24 @@ qdrant-client>=1.7.0
 pytest>=8.0.0
 pytest-asyncio>=0.23.0
 
+# Testing and load testing
+aiohttp>=3.9.0  # For load testing and async HTTP requests
+
+# Production ASGI servers for scaling
+gunicorn>=21.2.0  # WSGI server for Flask
+uvicorn[standard]>=0.27.0  # ASGI server for FastAPI with extra performance features
+
 # Web Frameworks (optional - install as needed)
 uvicorn>=0.27.0  # For FastAPI
 flask>=3.0.0
 flask-cors>=4.0.0
 django>=5.0.0
 djangorestframework>=3.14.0
+
+# Security and Authentication
+pyjwt>=2.8.0  # JWT token handling
+passlib>=1.7.4  # Password hashing
+bcrypt>=4.0.0  # Bcrypt hashing backend
 
 # UI Frameworks (optional - install as needed)
 streamlit>=1.35.0

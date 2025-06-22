@@ -1,0 +1,76 @@
+{
+  "api": {
+    "framework": "fastapi",
+    "host": "0.0.0.0",
+    "port": 8000,
+    "workers": 4,
+    "debug": false,
+    "reload": false,
+    "enable_docs": true,
+    "docs_url": "/docs",
+    "openapi_url": "/openapi.json",
+    "custom_headers": {
+      "X-Powered-By": "RAG-Engine-Enhanced",
+      "X-API-Version": "2.0.0"
+    }
+  },
+  "security": {
+    "auth_method": "api_key",
+    "api_keys": ["your-production-api-key-here"],
+    "jwt_secret": "your-jwt-secret-here",
+    "cors_origins": ["https://yourdomain.com", "http://localhost:3000"],
+    "enable_rate_limiting": true,
+    "requests_per_minute": 100,
+    "rate_limit_type": "per_ip"
+  },
+  "middleware": {
+    "enable_compression": true,
+    "enable_request_logging": true,
+    "enable_response_caching": true,
+    "cache_ttl": 300,
+    "include_error_details": false
+  },
+  "monitoring": {
+    "enable_metrics": true,
+    "metrics_endpoint": "/metrics",
+    "enable_health_checks": true
+  },
+  "rag": {
+    "documents": [
+      {
+        "type": "pdf",
+        "path": "./documents"
+      }
+    ],
+    "chunking": {
+      "method": "recursive",
+      "max_tokens": 512,
+      "overlap": 50
+    },
+    "embedding": {
+      "provider": "openai",
+      "model": "text-embedding-3-small",
+      "api_key": "${OPENAI_API_KEY}"
+    },
+    "vectorstore": {
+      "provider": "chroma",
+      "persist_directory": "./vector_store_enhanced"
+    },
+    "retrieval": {
+      "top_k": 5,
+      "similarity_threshold": 0.7
+    },
+    "llm": {
+      "provider": "openai",
+      "model": "gpt-4",
+      "api_key": "${OPENAI_API_KEY}",
+      "temperature": 0.7,
+      "max_tokens": 1000
+    },
+    "prompting": {
+      "system_prompt": "You are a helpful AI assistant with access to enterprise knowledge. Provide accurate, contextual answers based on the provided information. If you're unsure about something, say so clearly.",
+      "include_context": true,
+      "max_context_length": 2000
+    }
+  }
+}

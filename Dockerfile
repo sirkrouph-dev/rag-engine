@@ -30,5 +30,5 @@ ENV RAG_CONFIG_PATH=/app/config/production.json
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Default command (can be overridden)
-CMD ["python", "-m", "rag_engine", "serve", "--config", "/app/config/production.json", "--framework", "fastapi", "--host", "0.0.0.0", "--port", "8000"]
+# Default command with production scaling
+CMD ["python", "-m", "rag_engine", "serve", "--config", "/app/config/production.json", "--framework", "fastapi", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
