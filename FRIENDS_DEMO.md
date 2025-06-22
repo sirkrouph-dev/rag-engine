@@ -1,8 +1,32 @@
 # 🎯 Friend's House Demo - Complete Guide
 
-**Show off your RAG Engine in 10 minutes!**
+**Show off your RAG Engine in 5 minutes - Even if your friend has zero dev setup!**
 
-## Option A: Local LLM (Recommended - No API keys needed!)
+## Option A: Docker Magic ✨ (Friend has nothing installed)
+
+### Ultra-Quick Setup (5 minutes total)
+```bash
+# 1. Install Docker (2 minutes)
+winget install Docker.DockerDesktop
+# Or download from: https://docker.com/products/docker-desktop
+
+# 2. Clone & Run (2 minutes)
+git clone YOUR_REPO_URL
+cd rag_engine
+docker-compose -f docker-compose.demo.yml up
+
+# 3. Visit http://localhost:3001 (30 seconds)
+```
+
+**That's literally it!** Everything runs in containers:
+- ✅ Python environment (included)
+- ✅ Ollama + llama3.2:1b model (auto-downloaded)
+- ✅ Frontend + Backend (pre-configured)
+- ✅ Zero manual setup needed
+
+---
+
+## Option B: Local Setup (Friend has Python)
 
 ### 1. Install Ollama (2 minutes)
 ```bash

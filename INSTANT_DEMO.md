@@ -1,17 +1,47 @@
-# 🚀 Quick Demo Setup - Local LLM
+# ⚡ INSTANT RAG Demo - No Setup Required!
 
-**Perfect for showing the RAG Engine at a friend's house!**
+**Zero-to-demo in 5 minutes - perfect for friends without Python!**
 
-## 1. Prerequisites (5 minutes)
+## Option A: Docker (Easiest - No Python needed!) ⭐
 
-### Install Ollama (easiest local LLM)
+### 1. Prerequisites (2 minutes)
+```bash
+# Install Docker Desktop: https://docker.com/products/docker-desktop
+# On Windows: winget install Docker.DockerDesktop
+```
+
+### 2. One-Command Setup (3 minutes)
+```bash
+git clone https://github.com/yourusername/rag_engine.git
+cd rag_engine
+
+# This starts everything (backend + frontend + Ollama)
+docker-compose up
+```
+
+**That's it!** Visit: **http://localhost:3001**
+
+The Docker setup includes:
+- ✅ Python environment (pre-configured)
+- ✅ All dependencies installed
+- ✅ Ollama with llama3.2:1b model
+- ✅ Frontend and backend ready
+- ✅ No manual configuration needed
+
+---
+
+## Option B: Manual Setup (If Python already installed)
+
+### 1. Prerequisites (5 minutes)
+
+#### Install Ollama (easiest local LLM)
 ```bash
 # Download and install from: https://ollama.ai
 # Or use winget on Windows:
 winget install Ollama.Ollama
 ```
 
-### Pull a small, fast model
+#### Pull a small, fast model
 ```bash
 # Llama 3.2 1B - very small and fast (1.3GB)
 ollama pull llama3.2:1b
@@ -20,7 +50,7 @@ ollama pull llama3.2:1b
 ollama pull phi3:mini
 ```
 
-## 2. Clone and Setup (3 minutes)
+### 2. Clone and Setup (3 minutes)
 
 ```bash
 git clone https://github.com/yourusername/rag_engine.git
@@ -35,7 +65,7 @@ npm install
 cd ..
 ```
 
-## 3. Quick Configuration (1 minute)
+### 3. Quick Configuration (1 minute)
 
 Copy the demo config:
 ```bash
@@ -48,14 +78,14 @@ This uses:
 - **In-memory vector store** (no setup needed)
 - **Basic chunking** (fast)
 
-## 4. Run Demo (30 seconds)
+### 4. Run Demo (30 seconds)
 
-### Terminal 1 - Backend:
+#### Terminal 1 - Backend:
 ```bash
 python -m rag_engine serve
 ```
 
-### Terminal 2 - Frontend:
+#### Terminal 2 - Frontend:
 ```bash
 cd frontend
 npm run dev
@@ -63,7 +93,7 @@ npm run dev
 
 Visit: **http://localhost:3001** (or shown port)
 
-## 5. Quick Demo Flow (2 minutes)
+### 5. Quick Demo Flow (2 minutes)
 
 1. **Dashboard** - Show the dark/light theme toggle ✨
 2. **Pipeline** - Click "Build Pipeline" 
@@ -89,4 +119,4 @@ ollama serve
 
 ---
 
-**Total setup time: ~10 minutes | Demo time: ~5 minutes** 🎯
+**Total setup time: ~5 minutes | Demo time: ~3 minutes** ⚡
