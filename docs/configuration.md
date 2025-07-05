@@ -356,7 +356,91 @@ Configure language models for response generation.
 
 ## Prompting Configuration
 
-Configure prompt templates and system instructions.
+Configure prompt templates and system instructions. The RAG Engine now supports both legacy and enhanced prompting systems with multiple prompter types and template management.
+
+### Enhanced Prompting System
+
+The enhanced prompting system supports multiple prompter types with advanced features:
+
+#### RAG Prompter (Recommended)
+```json
+{
+  "prompting": {
+    "type": "rag",
+    "template_path": "./templates/rag_template.txt",
+    "system_prompt": "You are a helpful AI assistant.",
+    "context_window": 3000,
+    "citation_format": "numbered",
+    "context_optimization": {
+      "relevance_filtering": true,
+      "diversity_enhancement": true,
+      "redundancy_removal": true,
+      "length_balancing": true
+    }
+  }
+}
+```
+
+#### Conversational Prompter
+```json
+{
+  "prompting": {
+    "type": "conversational",
+    "template_path": "./templates/chat_template.txt",
+    "system_prompt": "You are a friendly AI assistant.",
+    "memory_length": 10,
+    "context_compression": true,
+    "persona": "helpful_assistant",
+    "conversation_template": "chat_template.txt"
+  }
+}
+```
+
+#### Code Explanation Prompter
+```json
+{
+  "prompting": {
+    "type": "code_explanation",
+    "template_path": "./templates/code_template.txt",
+    "system_prompt": "You are an expert code assistant.",
+    "language": "python",
+    "include_syntax_highlighting": true,
+    "add_comments": true,
+    "explain_logic": true
+  }
+}
+```
+
+#### Debugging Prompter
+```json
+{
+  "prompting": {
+    "type": "debugging",
+    "template_path": "./templates/debug_template.txt",
+    "system_prompt": "You are a debugging expert.",
+    "debug_level": "detailed",
+    "include_stack_trace": true,
+    "suggest_fixes": true
+  }
+}
+```
+
+#### Chain of Thought Prompter
+```json
+{
+  "prompting": {
+    "type": "chain_of_thought",
+    "template_path": "./templates/chain_of_thought_template.txt",
+    "system_prompt": "Think step by step to solve problems.",
+    "reasoning_steps": 3,
+    "explicit_reasoning": true,
+    "step_separator": "\nStep {n}:",
+    "conclusion_prompt": "Therefore:"
+  }
+}
+```
+
+### Legacy Prompting (Backward Compatible)
 
 ### Default Prompting
 
@@ -393,6 +477,41 @@ Configure prompt templates and system instructions.
     "system_prompt": "Answer the question based only on the provided context. If the answer is not in the context, say 'I don't know'.",
     "strict_context": true,
     "require_citations": true
+  }
+}
+```
+
+### Template Management
+
+#### Custom Templates
+Templates are stored in the `templates/` directory and can be customized:
+
+- `rag_template.txt` - Standard RAG prompts
+- `chat_template.txt` - Conversational prompts  
+- `chain_of_thought_template.txt` - Reasoning prompts
+- `code_template.txt` - Code explanation prompts
+- `debug_template.txt` - Debugging prompts
+
+#### Template Variables
+Templates support variable substitution:
+- `{query}` - User question
+- `{context}` - Retrieved documents
+- `{conversation_history}` - Previous conversation
+- `{metadata}` - Document metadata
+- `{custom_vars}` - Custom template variables
+
+#### Advanced Features
+```json
+{
+  "prompting": {
+    "type": "rag",
+    "advanced_features": {
+      "dynamic_template_selection": true,
+      "multi_language_support": true,
+      "context_compression": true,
+      "citation_enhancement": true,
+      "quality_optimization": true
+    }
   }
 }
 ```

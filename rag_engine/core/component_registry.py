@@ -13,6 +13,7 @@ from rag_engine.core.vectorstore import get_vector_store, DefaultVectorStore
 from rag_engine.core.retriever import get_retriever, DefaultRetriever
 from rag_engine.core.llm import get_llm, DefaultLLM
 from rag_engine.core.prompting import get_prompter, DefaultPrompter
+from rag_engine.core.prompting_enhanced import get_prompter as get_enhanced_prompter
 
 
 def register_default_components():
@@ -108,12 +109,19 @@ def register_default_components():
     
     # Register prompter factory
     def prompter_factory(name: str, config: dict):
-        return get_prompter(config)
+        # Try enhanced prompter first, fall back to legacy
+        try:
+            return get_enhanced_prompter(name, config)
+        except (ValueError, NotImplementedError):
+            return get_prompter(config)
     
     COMPONENT_REGISTRY.register_factory('prompter', prompter_factory)
     
-    # Register prompter implementations
-    prompter_templates = ['default', 'conversational', 'qa', 'summarization']
+    # Register prompter implementations (enhanced + legacy)
+    prompter_templates = [
+        'default', 'conversational', 'qa', 'summarization',  # Legacy
+        'rag', 'code_explanation', 'debugging', 'chain_of_thought'  # Enhanced
+    ]
     for template in prompter_templates:
         COMPONENT_REGISTRY.register_component(
             'prompter',

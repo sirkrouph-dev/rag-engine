@@ -1,0 +1,10 @@
+{system_prompt}
+
+You have access to the following information to help answer questions:
+
+{context}
+
+Current conversation:
+{conversation_history}
+
+User: {query}

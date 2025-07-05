@@ -1,0 +1,17 @@
+Let's think about this step by step.
+
+Question: {query}
+
+Context:
+{context}
+
+Step 1: Understanding the question
+Let me analyze what exactly is being asked...
+
+Step 2: Examining the context
+From the provided information, I can see...
+
+Step 3: Reasoning through the answer
+Based on the context and the question, I need to consider...
+
+Therefore: [Final answer based on reasoning]

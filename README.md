@@ -23,6 +23,7 @@ A **modular, AI-powered framework** for building advanced Retrieval-Augmented Ge
 ### 🏗️ **Modular Architecture**
 - **Component Registry**: Swap retrievers, LLMs, embedders without code changes
 - **Orchestration Layer**: Default, hybrid, and multi-modal RAG strategies
+- **Enhanced Prompting**: Advanced prompt templates with conversational memory, code explanation, and reasoning
 - **Plugin-Based**: Extensible, lazy-loaded components
 - **Configuration-Driven**: Control everything via JSON/YAML configs
 
@@ -38,6 +39,14 @@ A **modular, AI-powered framework** for building advanced Retrieval-Augmented Ge
 - **Enhanced Endpoints**: AI assistant, stack management, orchestrator APIs
 - **Custom Servers**: Add your own server implementations
 - **Health Monitoring**: Comprehensive status and error tracking
+
+### 🧠 **Advanced Prompting System**
+- **Multiple Prompter Types**: RAG, conversational, code explanation, debugging, chain-of-thought
+- **Template Management**: Customizable prompt templates with variable substitution
+- **Context Optimization**: Smart context formatting, relevance filtering, and redundancy removal
+- **Conversation Memory**: Multi-turn conversations with intelligent memory management
+- **Citation Support**: Numbered citations and source attribution
+- **Language-Specific**: Specialized prompters for code, debugging, and technical explanations
 
 ## 🚀 **Quick Start**
 

@@ -1,0 +1,38 @@
+{
+  "documents": [
+    { "type": "txt", "path": "./examples/demo_document.md" }
+  ],
+  "chunking": {
+    "method": "sentence",
+    "max_tokens": 300,
+    "overlap": 30
+  },
+  "embedding": {
+    "provider": "huggingface",
+    "model": "sentence-transformers/all-MiniLM-L6-v2"
+  },
+  "vectorstore": {
+    "provider": "chroma",
+    "persist_directory": "./demo_vectors"
+  },
+  "retrieval": {
+    "method": "similarity",
+    "top_k": 5
+  },
+  "prompting": {
+    "type": "conversational",
+    "template_path": "./templates/chat_template.txt",
+    "system_prompt": "You are a friendly AI assistant helping users understand concepts.",
+    "memory_length": 5,
+    "context_compression": true,
+    "persona": "helpful_teacher"
+  },
+  "llm": {
+    "provider": "openai",
+    "model": "gpt-3.5-turbo",
+    "temperature": 0.7
+  },
+  "output": {
+    "method": "console"
+  }
+}

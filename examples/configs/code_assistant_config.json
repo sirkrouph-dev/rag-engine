@@ -1,0 +1,39 @@
+{
+  "documents": [
+    { "type": "py", "path": "./rag_engine/core/" }
+  ],
+  "chunking": {
+    "method": "code_aware",
+    "max_tokens": 500,
+    "overlap": 50,
+    "preserve_functions": true
+  },
+  "embedding": {
+    "provider": "huggingface",
+    "model": "microsoft/codebert-base"
+  },
+  "vectorstore": {
+    "provider": "chroma",
+    "persist_directory": "./code_vectors"
+  },
+  "retrieval": {
+    "method": "similarity",
+    "top_k": 3
+  },
+  "prompting": {
+    "type": "code_explanation",
+    "template_path": "./templates/code_template.txt",
+    "system_prompt": "You are an expert code assistant. Explain code clearly with examples.",
+    "language": "python",
+    "include_syntax_highlighting": true,
+    "add_comments": true
+  },
+  "llm": {
+    "provider": "openai",
+    "model": "gpt-4",
+    "temperature": 0.2
+  },
+  "output": {
+    "method": "console"
+  }
+}
