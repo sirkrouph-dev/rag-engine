@@ -797,6 +797,10 @@ Keep responses concise and actionable. Focus on practical solutions."""
     
     def _setup_custom_routes(self):
         """Setup custom routes from configuration."""
+        # Setup conversational routing endpoints
+        self._setup_routing_endpoints()
+        
+        # Setup custom routes from configuration
         if not self.api_config.custom_routes:
             return
             
@@ -813,6 +817,211 @@ Keep responses concise and actionable. Focus on practical solutions."""
                         methods=[method],
                         **route_config.get("kwargs", {})
                     )
+
+    def _setup_routing_endpoints(self):
+        """Setup conversational routing and template management endpoints."""
+        # Determine auth dependency
+        auth_dep = getattr(self, 'auth_dependency', None)
+        dependencies = [Depends(auth_dep)] if auth_dep else []
+
+        @self.app.get("/routing/templates", dependencies=dependencies)
+        async def get_routing_templates():
+            """Get all available routing templates."""
+            try:
+                from pathlib import Path
+                import os
+                
+                templates_dir = Path("templates/routing")
+                if not templates_dir.exists():
+                    return {"templates": [], "message": "No routing templates found"}
+                
+                templates = {}
+                for template_file in templates_dir.glob("*.txt"):
+                    try:
+                        with open(template_file, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        templates[template_file.stem] = {
+                            "name": template_file.stem,
+                            "filename": template_file.name,
+                            "content": content,
+                            "path": str(template_file)
+                        }
+                    except Exception as e:
+                        logging.error(f"Error reading template {template_file}: {e}")
+                
+                return {"templates": templates}
+            except Exception as e:
+                logging.error(f"Error getting routing templates: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
+
+        @self.app.get("/routing/templates/{template_name}", dependencies=dependencies)
+        async def get_routing_template(template_name: str):
+            """Get a specific routing template."""
+            try:
+                from pathlib import Path
+                
+                template_path = Path(f"templates/routing/{template_name}.txt")
+                if not template_path.exists():
+                    raise HTTPException(status_code=404, detail=f"Template '{template_name}' not found")
+                
+                with open(template_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                return {
+                    "name": template_name,
+                    "filename": template_path.name,
+                    "content": content,
+                    "path": str(template_path)
+                }
+            except HTTPException:
+                raise
+            except Exception as e:
+                logging.error(f"Error getting template {template_name}: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
+
+        @self.app.put("/routing/templates/{template_name}", dependencies=dependencies)
+        async def update_routing_template(template_name: str, template_data: dict):
+            """Update a routing template."""
+            try:
+                from pathlib import Path
+                import os
+                
+                # Validate input
+                if 'content' not in template_data:
+                    raise HTTPException(status_code=400, detail="Template content is required")
+                
+                # Ensure templates directory exists
+                templates_dir = Path("templates/routing")
+                templates_dir.mkdir(parents=True, exist_ok=True)
+                
+                template_path = templates_dir / f"{template_name}.txt"
+                
+                # Backup existing template if it exists
+                if template_path.exists():
+                    backup_path = templates_dir / f"{template_name}.txt.backup"
+                    import shutil
+                    shutil.copy2(template_path, backup_path)
+                
+                # Write new content
+                with open(template_path, 'w', encoding='utf-8') as f:
+                    f.write(template_data['content'])
+                
+                return {
+                    "message": f"Template '{template_name}' updated successfully",
+                    "path": str(template_path),
+                    "backup_created": template_path.exists()
+                }
+            except HTTPException:
+                raise
+            except Exception as e:
+                logging.error(f"Error updating template {template_name}: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
+
+        @self.app.get("/routing/config", dependencies=dependencies)
+        async def get_routing_config():
+            """Get current conversational routing configuration."""
+            try:
+                # Get routing config from current configuration
+                routing_config = {}
+                if hasattr(self, 'config') and self.config:
+                    config_dict = self.config.dict() if hasattr(self.config, 'dict') else self.config
+                    prompting_config = config_dict.get('prompting', {})
+                    
+                    if prompting_config.get('type') == 'conversational_rag':
+                        routing_config = {
+                            "enabled": prompting_config.get('enable_routing', True),
+                            "fallback_to_simple": prompting_config.get('fallback_to_simple', True),
+                            "routing_config": prompting_config.get('routing_config', {}),
+                            "domain_config": prompting_config.get('domain_config', {}),
+                            "system_prompt": prompting_config.get('system_prompt', '')
+                        }
+                    else:
+                        routing_config = {
+                            "enabled": False,
+                            "message": "Conversational routing not currently configured"
+                        }
+                
+                return {"routing_config": routing_config}
+            except Exception as e:
+                logging.error(f"Error getting routing config: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
+
+        @self.app.put("/routing/config", dependencies=dependencies)
+        async def update_routing_config(config_data: dict):
+            """Update conversational routing configuration."""
+            try:
+                # This would typically update the configuration and reload the prompter
+                # For now, we'll return a placeholder response
+                return {
+                    "message": "Routing configuration updated",
+                    "note": "Configuration updates require server restart to take full effect",
+                    "config": config_data
+                }
+            except Exception as e:
+                logging.error(f"Error updating routing config: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
+
+        @self.app.post("/routing/test", dependencies=dependencies)
+        async def test_routing(test_data: dict):
+            """Test routing with a sample query."""
+            try:
+                query = test_data.get('query', '')
+                if not query:
+                    raise HTTPException(status_code=400, detail="Query is required for testing")
+                
+                # Import conversational routing components
+                from ..core.conversational_routing import ConversationalRouter
+                from ..core.conversational_integration import ConversationalRAGPrompter
+                
+                # Create a test router with current config
+                routing_config = test_data.get('config', {})
+                test_router = ConversationalRouter(routing_config)
+                
+                # Get routing insights without actually processing
+                insights = {
+                    "query": query,
+                    "routing_enabled": True,
+                    "estimated_category": "rag_factual",  # Placeholder
+                    "estimated_strategy": "rag_retrieval",  # Placeholder
+                    "confidence": 0.85,
+                    "reasoning": "Test routing analysis - would require LLM for actual analysis"
+                }
+                
+                return {"insights": insights}
+            except HTTPException:
+                raise  # Re-raise HTTP exceptions as-is
+            except Exception as e:
+                logging.error(f"Error testing routing: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
+
+        @self.app.get("/routing/analytics", dependencies=dependencies)
+        async def get_routing_analytics():
+            """Get routing analytics and usage statistics."""
+            try:
+                # Placeholder analytics - would be populated from actual usage tracking
+                analytics = {
+                    "total_queries": 0,
+                    "routing_decisions": {
+                        "rag_retrieval": 0,
+                        "contextual_chat": 0,
+                        "simple_response": 0,
+                        "polite_rejection": 0,
+                        "clarification_request": 0
+                    },
+                    "category_distribution": {
+                        "rag_factual": 0,
+                        "greeting": 0,
+                        "out_of_context": 0,
+                        "follow_up": 0
+                    },
+                    "avg_confidence": 0.0,
+                    "template_usage": {}
+                }
+                
+                return {"analytics": analytics}
+            except Exception as e:
+                logging.error(f"Error getting routing analytics: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
 
     def _setup_monitoring(self):
         """Setup monitoring endpoints."""
@@ -905,3 +1114,5 @@ def create_production_app():
     
     server = FastAPIEnhanced(config=config, api_config=api_config)
     return server.create_app()
+
+

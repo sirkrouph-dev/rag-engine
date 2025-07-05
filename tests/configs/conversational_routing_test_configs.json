@@ -1,0 +1,131 @@
+{
+  "test_conversational_routing": {
+    "prompting": {
+      "type": "conversational_rag",
+      "enable_routing": true,
+      "fallback_to_simple": true,
+      "routing_config": {
+        "topic_analysis_temperature": 0.1,
+        "classification_temperature": 0.1,
+        "response_temperature": 0.7,
+        "max_conversation_history": 10,
+        "confidence_threshold": 0.8,
+        "enable_reasoning_chain": true
+      },
+      "domain_config": {
+        "name": "test_domain",
+        "description": "Test domain for conversational routing",
+        "topics": ["general", "technical", "billing", "support"]
+      },
+      "system_prompt": "You are a helpful AI assistant for testing conversational routing."
+    },
+    "embedding": {
+      "type": "sentence-transformers",
+      "model": "all-MiniLM-L6-v2"
+    },
+    "vectorstore": {
+      "type": "faiss",
+      "dimension": 384,
+      "index_type": "IndexFlatL2"
+    },
+    "llm": {
+      "type": "mock",
+      "model": "test-model"
+    },
+    "chunking": {
+      "type": "recursive",
+      "chunk_size": 500,
+      "chunk_overlap": 50
+    },
+    "retrieval": {
+      "top_k": 3,
+      "similarity_threshold": 0.7
+    }
+  },
+  "test_customer_support": {
+    "prompting": {
+      "type": "conversational_rag",
+      "enable_routing": true,
+      "fallback_to_simple": true,
+      "routing_config": {
+        "topic_analysis_temperature": 0.1,
+        "classification_temperature": 0.1,
+        "response_temperature": 0.7,
+        "max_conversation_history": 20,
+        "confidence_threshold": 0.75,
+        "enable_reasoning_chain": true
+      },
+      "domain_config": {
+        "name": "customer_support",
+        "description": "Customer support for a SaaS platform",
+        "topics": ["billing", "technical_issues", "account_management", "general_inquiry"],
+        "specialization": "B2B SaaS customer support"
+      },
+      "system_prompt": "You are a professional customer support assistant for a SaaS platform. Be helpful, accurate, and empathetic."
+    },
+    "embedding": {
+      "type": "sentence-transformers",
+      "model": "all-MiniLM-L6-v2"
+    },
+    "vectorstore": {
+      "type": "faiss",
+      "dimension": 384
+    },
+    "llm": {
+      "type": "mock",
+      "model": "customer-support-model"
+    }
+  },
+  "test_performance": {
+    "prompting": {
+      "type": "conversational_rag",
+      "enable_routing": true,
+      "routing_config": {
+        "topic_analysis_temperature": 0.0,
+        "classification_temperature": 0.0,
+        "response_temperature": 0.5,
+        "max_conversation_history": 5,
+        "confidence_threshold": 0.9,
+        "enable_reasoning_chain": false
+      },
+      "domain_config": {
+        "name": "performance_test",
+        "description": "Optimized config for performance testing"
+      }
+    },
+    "embedding": {
+      "type": "sentence-transformers",
+      "model": "all-MiniLM-L6-v2"
+    },
+    "vectorstore": {
+      "type": "faiss",
+      "dimension": 384
+    },
+    "llm": {
+      "type": "mock",
+      "model": "fast-test-model"
+    }
+  },
+  "test_minimal": {
+    "prompting": {
+      "type": "conversational_rag",
+      "enable_routing": false,
+      "fallback_to_simple": true,
+      "routing_config": {
+        "confidence_threshold": 0.5,
+        "enable_reasoning_chain": false
+      }
+    },
+    "embedding": {
+      "type": "sentence-transformers",
+      "model": "all-MiniLM-L6-v2"
+    },
+    "vectorstore": {
+      "type": "faiss",
+      "dimension": 384
+    },
+    "llm": {
+      "type": "mock"
+    }
+  }
+}

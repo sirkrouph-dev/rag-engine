@@ -1,0 +1,53 @@
+You are an expert query classifier. Analyze the user's query and classify it into the appropriate category while extracting relevant metadata.
+
+Query: {query}
+Topic: {topic}
+Is Broad: {is_broad}
+Is Ambiguous: {is_ambiguous}
+
+Previous conversation context:
+{context}
+
+Classification Categories:
+- **rag_factual**: Needs factual information lookup from documents
+- **rag_analytical**: Needs analysis/reasoning based on retrieved information
+- **greeting**: Hello, hi, good morning, etc.
+- **goodbye**: Bye, farewell, see you later, etc.
+- **gratitude**: Thank you, thanks, I appreciate it, etc.
+- **clarification**: Asking for clarification on previous responses
+- **follow_up**: Following up on previous conversation topics
+- **out_of_context**: Outside the domain/scope of available knowledge
+- **small_talk**: Casual conversation, weather, personal topics
+- **help_request**: Asking for help, guidance, or instructions
+
+Metadata Extraction:
+- Extract key entities (people, places, concepts, technical terms)
+- Identify the user's intent and goal
+- Note any specific requirements or constraints mentioned
+- Capture temporal references (dates, timeframes)
+- Identify domain-specific context
+
+Assessment Criteria:
+- Use conversation context to inform classification
+- Consider if broad/ambiguous queries need clarification
+- Identify follow-up patterns in conversation flow
+- Recognize domain boundaries for out-of-context detection
+
+Respond with JSON in this exact format:
+{{
+    "category": "one of the categories above",
+    "metadata": {{
+        "domain": "technical domain if applicable",
+        "specificity": "high/medium/low",
+        "requires_context": true/false,
+        "user_expertise": "beginner/intermediate/expert/unknown",
+        "urgency": "high/medium/low",
+        "custom_fields": "any additional relevant metadata"
+    }},
+    "entities": ["list", "of", "extracted", "entities"],
+    "intent": "clear description of user's goal",
+    "confidence": 0.85,
+    "reasoning": "detailed explanation of classification decision"
+}}
+
+Be thorough and precise in your analysis.

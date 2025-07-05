@@ -1,0 +1,74 @@
+{
+  "documents": [
+    { "type": "txt", "path": "./docs/" },
+    { "type": "md", "path": "./examples/" }
+  ],
+  "chunking": {
+    "method": "recursive",
+    "max_tokens": 500,
+    "overlap": 75
+  },
+  "embedding": {
+    "provider": "openai",
+    "model": "text-embedding-3-small",
+    "api_key": "${OPENAI_API_KEY}"
+  },
+  "vectorstore": {
+    "provider": "chroma",
+    "persist_directory": "./production_vectors",
+    "collection_name": "conversational_rag"
+  },
+  "retrieval": {
+    "method": "hybrid",
+    "top_k": 8,
+    "semantic_weight": 0.7,
+    "bm25_weight": 0.3
+  },
+  "prompting": {
+    "type": "conversational_rag",
+    "enable_routing": true,
+    "fallback_to_simple": false,
+    "system_prompt": "You are an expert AI assistant for our organization. You excel at understanding user intent and providing precisely the right type of response.",
+    "routing_config": {
+      "topic_analysis_temperature": 0.05,
+      "classification_temperature": 0.05,
+      "response_temperature": 0.6,
+      "max_conversation_history": 20,
+      "enable_reasoning_chain": true,
+      "confidence_threshold": 0.8,
+      "enable_clarification_requests": true,
+      "context_optimization": {
+        "relevance_filtering": true,
+        "diversity_enhancement": true,
+        "redundancy_removal": true,
+        "citation_enhancement": true
+      }
+    },
+    "domain_config": {
+      "domain_name": "Technical Documentation",
+      "allowed_topics": ["software", "technology", "documentation", "APIs", "architecture"],
+      "rejection_style": "professional",
+      "expertise_levels": ["beginner", "intermediate", "expert"],
+      "default_expertise": "intermediate"
+    }
+  },
+  "llm": {
+    "provider": "openai",
+    "model": "gpt-4-turbo",
+    "temperature": 0.6,
+    "max_tokens": 1200,
+    "api_key": "${OPENAI_API_KEY}"
+  },
+  "output": {
+    "method": "structured",
+    "include_metadata": true,
+    "include_reasoning": true,
+    "include_confidence": true
+  },
+  "monitoring": {
+    "enable_metrics": true,
+    "track_conversation_flow": true,
+    "log_routing_decisions": true,
+    "measure_response_quality": true
+  }
+}

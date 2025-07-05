@@ -1,0 +1,44 @@
+{
+  "documents": [
+    { "type": "txt", "path": "./examples/demo_document.md" }
+  ],
+  "chunking": {
+    "method": "sentence",
+    "max_tokens": 400,
+    "overlap": 50
+  },
+  "embedding": {
+    "provider": "huggingface", 
+    "model": "sentence-transformers/all-MiniLM-L6-v2"
+  },
+  "vectorstore": {
+    "provider": "chroma",
+    "persist_directory": "./conversational_vectors"
+  },
+  "retrieval": {
+    "method": "similarity",
+    "top_k": 5
+  },
+  "prompting": {
+    "type": "conversational_rag",
+    "enable_routing": true,
+    "fallback_to_simple": true,
+    "system_prompt": "You are an intelligent AI assistant that knows when and how to use different response strategies.",
+    "routing_config": {
+      "topic_analysis_temperature": 0.1,
+      "classification_temperature": 0.1,
+      "response_temperature": 0.7,
+      "max_conversation_history": 10,
+      "enable_reasoning_chain": true
+    }
+  },
+  "llm": {
+    "provider": "openai",
+    "model": "gpt-4",
+    "temperature": 0.7,
+    "max_tokens": 800
+  },
+  "output": {
+    "method": "console"
+  }
+}

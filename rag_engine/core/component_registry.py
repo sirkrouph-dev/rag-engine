@@ -14,6 +14,7 @@ from rag_engine.core.retriever import get_retriever, DefaultRetriever
 from rag_engine.core.llm import get_llm, DefaultLLM
 from rag_engine.core.prompting import get_prompter, DefaultPrompter
 from rag_engine.core.prompting_enhanced import get_prompter as get_enhanced_prompter
+from rag_engine.core.conversational_integration import create_conversational_rag_prompter
 
 
 def register_default_components():
@@ -109,7 +110,11 @@ def register_default_components():
     
     # Register prompter factory
     def prompter_factory(name: str, config: dict):
-        # Try enhanced prompter first, fall back to legacy
+        # Try conversational routing first for advanced queries
+        if name == "conversational_rag":
+            return create_conversational_rag_prompter(config)
+        
+        # Try enhanced prompter next, fall back to legacy
         try:
             return get_enhanced_prompter(name, config)
         except (ValueError, NotImplementedError):
@@ -117,10 +122,11 @@ def register_default_components():
     
     COMPONENT_REGISTRY.register_factory('prompter', prompter_factory)
     
-    # Register prompter implementations (enhanced + legacy)
+    # Register prompter implementations (enhanced + legacy + conversational)
     prompter_templates = [
         'default', 'conversational', 'qa', 'summarization',  # Legacy
-        'rag', 'code_explanation', 'debugging', 'chain_of_thought'  # Enhanced
+        'rag', 'code_explanation', 'debugging', 'chain_of_thought',  # Enhanced
+        'conversational_rag'  # Advanced conversational routing
     ]
     for template in prompter_templates:
         COMPONENT_REGISTRY.register_component(

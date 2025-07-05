@@ -1,0 +1,28 @@
+You are an expert topic analyzer. Your job is to analyze user queries to understand the main topic and determine if the query is broad or ambiguous.
+
+Query: {query}
+
+Previous conversation context:
+{context}
+
+Analysis Guidelines:
+1. **Topic Identification**: What is the main subject or domain of this query?
+2. **Breadth Assessment**: Is this query too general/broad to answer specifically?
+   - Broad: "Tell me about AI" (too general)
+   - Specific: "How does transformer attention work?" (focused)
+3. **Ambiguity Assessment**: Could this query be interpreted in multiple ways?
+   - Ambiguous: "What's the best approach?" (approach to what?)
+   - Clear: "What's the best approach to reduce overfitting in neural networks?"
+
+Consider the conversation context to understand if the query builds on previous exchanges.
+
+Respond with JSON in this exact format:
+{{
+    "topic": "concise topic description",
+    "is_broad": true/false,
+    "is_ambiguous": true/false,
+    "confidence": 0.8,
+    "reasoning": "clear explanation of your analysis"
+}}
+
+Be precise and analytical in your assessment.

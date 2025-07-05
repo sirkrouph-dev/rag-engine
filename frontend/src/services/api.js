@@ -128,5 +128,41 @@ export default {
   async auditDependencies() {
     const response = await api.get('/stack/audit')
     return response.data
+  },
+
+  // Conversational Routing endpoints
+  async getRoutingTemplates() {
+    const response = await api.get('/routing/templates')
+    return response.data
+  },
+
+  async getRoutingTemplate(templateName) {
+    const response = await api.get(`/routing/templates/${templateName}`)
+    return response.data
+  },
+
+  async updateRoutingTemplate(templateName, templateData) {
+    const response = await api.put(`/routing/templates/${templateName}`, templateData)
+    return response.data
+  },
+
+  async getRoutingConfig() {
+    const response = await api.get('/routing/config')
+    return response.data
+  },
+
+  async updateRoutingConfig(configData) {
+    const response = await api.put('/routing/config', configData)
+    return response.data
+  },
+
+  async testRouting(testData) {
+    const response = await api.post('/routing/test', testData)
+    return response.data
+  },
+
+  async getRoutingAnalytics() {
+    const response = await api.get('/routing/analytics')
+    return response.data
   }
 }

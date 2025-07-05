@@ -28,6 +28,15 @@ rag_engine/
 ├── 📁 docs/                    # Documentation
 │   ├── api/                    # API framework documentation
 │   ├── components/             # Component documentation
+│   │   ├── chunkers.md
+│   │   ├── conversational_routing.md      # Advanced conversational routing system
+│   │   ├── conversational_routing_ui.md   # UI integration guide
+│   │   ├── embedders.md
+│   │   ├── llms.md
+│   │   ├── loaders.md
+│   │   ├── prompters.md
+│   │   ├── retrievers.md
+│   │   └── vectorstores.md
 │   ├── deployment/             # Deployment guides
 │   │   ├── DEPLOYMENT.md       # Main deployment guide
 │   │   ├── docker.md           # Docker deployment
@@ -60,10 +69,17 @@ rag_engine/
 ├── 📁 frontend/                # Vue.js frontend application
 │   ├── src/                    # Frontend source code
 │   │   ├── components/         # Vue components
+│   │   │   ├── routing/        # Conversational routing components
+│   │   │   │   ├── RoutingConfig.vue      # Routing configuration interface
+│   │   │   │   ├── TemplateManager.vue    # Template editing and management
+│   │   │   │   ├── RoutingTester.vue      # Query routing testing interface
+│   │   │   │   └── RoutingAnalytics.vue   # Analytics and monitoring dashboard
+│   │   │   └── ...             # Other components
 │   │   ├── views/              # Vue views/pages
 │   │   │   ├── AIAssistant.vue # AI assistant interface
 │   │   │   ├── Chat.vue        # Chat interface
 │   │   │   ├── Dashboard.vue   # Main dashboard
+│   │   │   ├── Routing.vue     # Conversational routing management
 │   │   │   └── ...             # Other views
 │   │   ├── services/           # API services
 │   │   └── App.vue             # Main app component
@@ -157,9 +173,12 @@ docs/
 ├── api/                        # API framework docs
 ├── components/                 # Component documentation
 │   ├── chunkers.md
+│   ├── conversational_routing.md      # Advanced conversational routing system
+│   ├── conversational_routing_ui.md   # UI integration guide
 │   ├── embedders.md
 │   ├── llms.md
 │   ├── loaders.md
+│   ├── prompters.md
 │   ├── retrievers.md
 │   └── vectorstores.md
 ├── deployment/                 # Deployment guides
