@@ -94,15 +94,13 @@ rag_engine/
 │       └── ...                 # Other stack requirements
 │
 ├── 📁 scripts/                 # Utility scripts
-│   ├── ai_setup.py             # AI-powered setup assistant
-│   ├── ai_setup.bat            # AI setup batch script
-│   └── quick_setup.bat         # Quick setup batch script
+│   └── ai_setup.py             # AI-powered setup assistant (only essential script)
 │
 ├── 📁 tests/                   # All test files
 │   ├── configs/                # Test configurations
 │   ├── fixtures/               # Test data
 │   ├── integration/            # Integration tests
-│   ├── legacy/                 # Legacy test files
+│   ├── archived/               # Archived development test files
 │   ├── unit/                   # Unit tests
 │   ├── test_comprehensive.py   # Comprehensive test suite
 │   └── README.md               # Testing documentation
@@ -116,11 +114,6 @@ rag_engine/
 ├── 📄 pytest.ini              # Test configuration
 ├── 📄 requirements.txt         # Main Python dependencies
 └── 📄 README.md                # Main project documentation
-```
-├── 📄 DEPLOYMENT.md            # Deployment instructions
-├── 📄 ENHANCED_API_GUIDE.md    # API usage guide
-├── 📄 SCALING.md               # Scaling information
-└── 📄 rag_engine_design.md     # Design document
 ```
 
 ## 📚 Core Components
@@ -181,19 +174,33 @@ tests/
 ├── fixtures/                   # Test data
 ├── integration/                # End-to-end tests
 ├── unit/                       # Component unit tests
-└── test_*.py                   # Individual test modules
+├── archived/                   # Archived development test files
+├── test_comprehensive.py       # Main comprehensive test suite
+└── README.md                   # Testing documentation
 ```
 
 ### `/examples/` - Examples and Demos
 ```
 examples/
 ├── configs/                    # Example configurations
-│   ├── basic.json             # Simple setup
-│   ├── vertex_ai.json         # Google Cloud setup
-│   └── hybrid.json            # Advanced features
+│   ├── demo_local_config.json  # Local demo setup
+│   ├── demo_cloud_config.json  # Cloud demo setup
+│   ├── example_config.json     # Basic example
+│   └── vertex_ai_example.json  # Google Cloud setup
 ├── scripts/                    # Example scripts
-└── quickstart.md               # Getting started guide
+├── ai_assistant_demo.md        # AI assistant demo
+├── demo_document.md            # Demo document for testing
+├── quickstart.md               # Quick start guide
+└── README.md                   # Examples documentation
 ```
+
+### `/scripts/` - Essential Utility Scripts
+```
+scripts/
+└── ai_setup.py                 # AI-powered setup assistant
+```
+
+**Note**: After cleanup, only the essential AI setup script remains. Redundant batch scripts have been moved to archive.
 
 ### `/frontend/` - Vue.js Frontend
 ```
