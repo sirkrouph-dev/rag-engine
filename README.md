@@ -42,11 +42,21 @@ A **modular, AI-powered framework** for building advanced Retrieval-Augmented Ge
 
 ### 🧠 **Advanced Prompting System**
 - **Multiple Prompter Types**: RAG, conversational, code explanation, debugging, chain-of-thought
+- **Conversational Routing**: Advanced multi-stage LLM routing system for human-like chat behavior
 - **Template Management**: Customizable prompt templates with variable substitution
 - **Context Optimization**: Smart context formatting, relevance filtering, and redundancy removal
 - **Conversation Memory**: Multi-turn conversations with intelligent memory management
 - **Citation Support**: Numbered citations and source attribution
 - **Language-Specific**: Specialized prompters for code, debugging, and technical explanations
+
+### 🔀 **Conversational Routing System**
+- **Multi-Stage Analysis**: Topic detection, query classification, and response strategy selection
+- **Human-Like Behavior**: Knows when to use RAG vs. simple chat vs. polite rejection
+- **Context Management**: Maintains conversation state and reasoning chains
+- **Template-Based**: Configurable prompts for each routing stage
+- **UI Management**: Full frontend interface for routing configuration and testing
+- **Analytics Dashboard**: Monitor routing decisions and performance metrics
+- **Extensible Architecture**: Plugin-ready for custom routing strategies
 
 ## 🚀 **Quick Start**
 
@@ -209,6 +219,31 @@ rag-engine install-stack LOCAL    # Install local models stack
     "model": "textembedding-gecko@001",
     "project": "your-gcp-project",
     "location": "us-central1"
+  },
+  "llm": {
+    "provider": "openai",
+    "model": "gpt-4-turbo"
+  }
+}
+```
+
+### **Advanced Conversational Routing**
+```json
+{
+  "prompting": {
+    "type": "conversational_rag",
+    "enable_routing": true,
+    "routing_config": {
+      "llm_config": {
+        "provider": "openai",
+        "model": "gpt-3.5-turbo"
+      },
+      "templates_dir": "templates/routing",
+      "max_conversation_history": 20,
+      "confidence_threshold": 0.7,
+      "enable_reasoning_chain": true
+    },
+    "fallback_to_simple": true
   },
   "llm": {
     "provider": "openai",
