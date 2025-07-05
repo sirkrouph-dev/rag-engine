@@ -70,7 +70,8 @@ import {
   ChatBubbleLeftRightIcon, 
   CogIcon, 
   DocumentTextIcon, 
-  ServerIcon 
+  ServerIcon,
+  SparklesIcon 
 } from '@heroicons/vue/24/outline'
 import SystemStatus from './components/SystemStatus.vue'
 import ErrorToast from './components/ErrorToast.vue'
@@ -84,6 +85,7 @@ const navigation = [
   { name: 'chat', label: 'Chat', href: '/chat', icon: ChatBubbleLeftRightIcon },
   { name: 'pipeline', label: 'Pipeline', href: '/pipeline', icon: CogIcon },
   { name: 'documents', label: 'Documents', href: '/documents', icon: DocumentTextIcon },
+  { name: 'ai-assistant', label: 'AI Assistant', href: '/ai-assistant', icon: SparklesIcon },
   { name: 'system', label: 'System', href: '/system', icon: ServerIcon }
 ]
 

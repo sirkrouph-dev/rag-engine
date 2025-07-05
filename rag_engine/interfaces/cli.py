@@ -12,9 +12,30 @@ app = typer.Typer(help="RAG Engine CLI - Modular Retrieval-Augmented Generation 
 
 
 @app.command()
-def build(config: str = typer.Option(..., '--config', '-c', help='Path to config file')):
+def build(config: Optional[str] = typer.Option(None, '--config', '-c', help='Path to config file (auto-detects if not provided)')):
     """Build vector database from configuration."""
     try:
+        # Smart config detection if not provided
+        if config is None:
+            possible_configs = [
+                "config.json",
+                "config.yml", 
+                "config.yaml",
+                "examples/configs/demo_local_config.json",
+                "configs/config.json"
+            ]
+            
+            for possible_config in possible_configs:
+                if os.path.exists(possible_config):
+                    config = possible_config
+                    typer.echo(f"🔍 Auto-detected config: {config}")
+                    break
+            
+            if config is None:
+                typer.echo("❌ No config file found. Please provide one with --config or create config.json", err=True)
+                typer.echo("💡 Try copying: cp examples/configs/demo_local_config.json config.json", err=True)
+                raise typer.Exit(1)
+        
         if not os.path.exists(config):
             typer.echo(f"❌ Config file not found: {config}", err=True)
             raise typer.Exit(1)
@@ -34,9 +55,30 @@ def build(config: str = typer.Option(..., '--config', '-c', help='Path to config
 
 
 @app.command()
-def chat(config: str = typer.Option(..., '--config', '-c', help='Path to config file')):
+def chat(config: Optional[str] = typer.Option(None, '--config', '-c', help='Path to config file (auto-detects if not provided)')):
     """Start interactive chat with your data."""
     try:
+        # Smart config detection if not provided
+        if config is None:
+            possible_configs = [
+                "config.json",
+                "config.yml", 
+                "config.yaml",
+                "examples/configs/demo_local_config.json",
+                "configs/config.json"
+            ]
+            
+            for possible_config in possible_configs:
+                if os.path.exists(possible_config):
+                    config = possible_config
+                    typer.echo(f"🔍 Auto-detected config: {config}")
+                    break
+            
+            if config is None:
+                typer.echo("❌ No config file found. Please provide one with --config or create config.json", err=True)
+                typer.echo("💡 Try copying: cp examples/configs/demo_local_config.json config.json", err=True)
+                raise typer.Exit(1)
+        
         if not os.path.exists(config):
             typer.echo(f"❌ Config file not found: {config}", err=True)
             raise typer.Exit(1)
@@ -106,7 +148,7 @@ def init(
 
 @app.command()
 def serve(
-    config: str = typer.Option(..., '--config', '-c', help='Path to config file'),
+    config: Optional[str] = typer.Option(None, '--config', '-c', help='Path to config file (defaults to config.json or examples/configs/demo_local_config.json)'),
     framework: str = typer.Option("fastapi", '--framework', '-f', help='API framework (fastapi, flask, django)'),
     orchestrator: str = typer.Option("default", '--orchestrator', '-o', help='Orchestrator type (default, hybrid, multimodal)'),
     host: str = typer.Option("0.0.0.0", '--host', help='Host to bind to'),
@@ -118,6 +160,28 @@ def serve(
 ):
     """Serve the RAG Engine API and/or UI."""
     try:
+        # Smart config detection if not provided
+        if config is None:
+            possible_configs = [
+                "config.json",
+                "config.yml", 
+                "config.yaml",
+                "examples/configs/demo_local_config.json",
+                "configs/config.json",
+                "configs/config.yml"
+            ]
+            
+            for possible_config in possible_configs:
+                if os.path.exists(possible_config):
+                    config = possible_config
+                    typer.echo(f"🔍 Auto-detected config: {config}")
+                    break
+            
+            if config is None:
+                typer.echo("❌ No config file found. Please provide one with --config or create config.json", err=True)
+                typer.echo("💡 Try copying: cp examples/configs/demo_local_config.json config.json", err=True)
+                raise typer.Exit(1)
+        
         if not os.path.exists(config):
             typer.echo(f"❌ Config file not found: {config}", err=True)
             raise typer.Exit(1)
@@ -438,127 +502,467 @@ def custom_server(
 
 
 
+@app.command()
+def ask(
+    question: str = typer.Argument(..., help='Question to ask the RAG Engine assistant'),
+    model: str = typer.Option("phi3.5:latest", '--model', '-m', help='LLM model to use for assistance')
+):
+    """Ask the RAG Engine AI assistant for help and guidance."""
+    try:
+        # Import here to avoid dependency issues if ollama is not installed
+        try:
+            import ollama
+        except ImportError:
+            typer.echo("❌ AI assistant not available. Please install ollama-python:")
+            typer.echo("   pip install ollama-python")
+            raise typer.Exit(1)
+        
+        typer.echo(f"🤖 Asking RAG Engine assistant: {question}")
+        
+        # System prompt for the assistant
+        system_prompt = """You are a helpful RAG Engine assistant specialized in package bloat management and optimization. You provide support for users of the RAG Engine framework.
+
+STACK INFORMATION:
+- DEMO: Quick demos (~200MB) - Minimal deps: ollama-python, sentence-transformers, faiss-cpu, typer, rich
+- LOCAL: Local development (~500MB) - Adds: transformers, torch, multiple vector stores, advanced chunking  
+- CLOUD: Production APIs (~100MB) - Cloud APIs only: openai, anthropic, requests, minimal local processing
+- MINI: Embedded systems (~50MB) - Ultra minimal: only core logic, no UI, basic text processing
+- FULL: Everything (~1GB) - All features: research models, advanced chunking, multiple frameworks
+- RESEARCH: Academic (~1GB+) - Cutting-edge: experimental models, specialized libraries
+
+BLOAT MANAGEMENT STRATEGIES:
+1. **Tiered Requirements**: Use requirements-{stack}.txt files for different use cases
+2. **Optional Dependencies**: Install only what's needed with pip extras: pip install rag-engine[demo]
+3. **Lazy Imports**: Import heavy libraries only when needed at runtime  
+4. **Runtime Detection**: Auto-detect available packages and gracefully fallback
+5. **Plugin Architecture**: Load components dynamically based on user needs
+6. **Dependency Analysis**: Help users understand what each package does and if they need it
+
+PACKAGE OPTIMIZATION:
+- Suggest lighter alternatives (e.g., sentence-transformers vs full transformers)
+- Identify unused dependencies in current setup
+- Recommend stack switches for user needs
+- Help with dependency conflicts and version pinning
+- Guide on Docker vs local installs for bloat reduction
+
+You can help with:
+- Configuration questions and stack recommendations
+- Package bloat analysis and optimization suggestions  
+- Troubleshooting setup issues and dependency conflicts
+- Best practices for different use cases and environments
+- Model recommendations and performance optimization
+- Feature explanations and upgrade/downgrade paths
+- Analyzing requirements.txt files and suggesting improvements
+- Docker vs local installation trade-offs
+
+Be concise, helpful, and provide actionable advice. Use emojis appropriately. Always consider the user's specific needs and suggest the minimal viable setup."""
+
+        # Get response from local LLM
+        client = ollama.Client()
+        
+        # Check if model is available
+        try:
+            response = client.chat(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": question}
+                ]
+            )
+            
+            answer = response['message']['content']
+            typer.echo(f"\n🤖 Assistant: {answer}")
+            
+        except ollama.ResponseError as e:
+            if "not found" in str(e):
+                typer.echo(f"❌ Model {model} not found. Pulling it now...")
+                client.pull(model)
+                # Retry the question
+                response = client.chat(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": question}
+                    ]
+                )
+                answer = response['message']['content']
+                typer.echo(f"\n🤖 Assistant: {answer}")
+            else:
+                raise e
+        
+    except Exception as e:
+        typer.echo(f"❌ Assistant error: {str(e)}", err=True)
+        typer.echo("💡 Tip: Make sure Ollama is running: ollama serve")
+        raise typer.Exit(1)
+
+
+@app.command()
+def analyze_bloat(
+    requirements_file: Optional[str] = typer.Option(None, '--file', '-f', help='Requirements file to analyze (defaults to requirements.txt)'),
+    stack: Optional[str] = typer.Option(None, '--stack', '-s', help='Compare against specific stack (demo, local, cloud, mini, full, research)')
+):
+    """Analyze package bloat and suggest optimizations using AI assistant."""
+    try:
+        # Import here to avoid dependency issues if ollama is not installed
+        try:
+            import ollama
+        except ImportError:
+            typer.echo("❌ AI assistant not available. Please install ollama-python:")
+            typer.echo("   pip install ollama-python")
+            raise typer.Exit(1)
+        
+        # Determine requirements file
+        if requirements_file is None:
+            possible_files = [
+                "requirements.txt",
+                "requirements-demo.txt", 
+                "requirements-local.txt",
+                "requirements-cloud.txt",
+                "requirements-mini.txt",
+                "requirements-full.txt",
+                "requirements-research.txt"
+            ]
+            
+            for possible_file in possible_files:
+                if os.path.exists(possible_file):
+                    requirements_file = possible_file
+                    typer.echo(f"🔍 Analyzing: {requirements_file}")
+                    break
+            
+            if requirements_file is None:
+                typer.echo("❌ No requirements file found", err=True)
+                raise typer.Exit(1)
+        
+        if not os.path.exists(requirements_file):
+            typer.echo(f"❌ Requirements file not found: {requirements_file}", err=True)
+            raise typer.Exit(1)
+        
+        # Read requirements file
+        with open(requirements_file, 'r') as f:
+            requirements_content = f.read()
+        
+        # Build analysis prompt
+        analysis_prompt = f"""Please analyze this requirements file for package bloat and suggest optimizations:
+
+FILE: {requirements_file}
+CONTENT:
+{requirements_content}
+
+"""
+        
+        if stack:
+            analysis_prompt += f"TARGET STACK: {stack.upper()}\n"
+            analysis_prompt += "Please suggest how to optimize this for the target stack.\n"
+        
+        analysis_prompt += """
+Please provide:
+1. 📊 Bloat analysis (heavy packages, unused deps)
+2. 🎯 Optimization suggestions (lighter alternatives)
+3. 📦 Stack recommendations (which stack fits best)
+4. ⚡ Quick wins (easy reductions)
+5. 🔧 Specific commands to optimize
+
+Be practical and actionable."""
+
+        typer.echo(f"🤖 Analyzing package bloat in {requirements_file}...")
+        
+        # Get AI analysis
+        client = ollama.Client()
+        try:
+            response = client.chat(
+                model="phi3.5:latest",
+                messages=[
+                    {"role": "user", "content": analysis_prompt}
+                ]
+            )
+            
+            analysis = response['message']['content']
+            typer.echo(f"\n🤖 Bloat Analysis:\n{analysis}")
+            
+        except Exception as e:
+            typer.echo(f"❌ Analysis failed: {str(e)}", err=True)
+            typer.echo("💡 Tip: Make sure Ollama is running and phi3.5:latest is installed")
+        
+    except Exception as e:
+        typer.echo(f"❌ Bloat analysis failed: {str(e)}", err=True)
+        raise typer.Exit(1)
+
+
+@app.command()
+def optimize_stack(
+    current_stack: str = typer.Argument(..., help='Current stack (demo, local, cloud, mini, full, research)'),
+    target_stack: str = typer.Argument(..., help='Target stack to optimize for'),
+    interactive: bool = typer.Option(True, '--interactive/--no-interactive', help='Interactive optimization with AI guidance')
+):
+    """Optimize dependencies for a different stack using AI guidance."""
+    try:
+        if interactive:
+            # Use AI assistant for interactive optimization
+            try:
+                import ollama
+                client = ollama.Client()
+            except ImportError:
+                typer.echo("❌ AI assistant not available. Please install ollama-python")
+                raise typer.Exit(1)
+            
+            optimization_prompt = f"""I want to optimize my RAG Engine setup from {current_stack.upper()} stack to {target_stack.upper()} stack.
+
+Please guide me through:
+1. 📋 What packages can I remove?
+2. 📦 What packages do I need to add?
+3. ⚙️ What configuration changes are needed?
+4. 🚀 Step-by-step migration commands
+5. ⚠️ What functionality will change?
+
+Current stack: {current_stack.upper()}
+Target stack: {target_stack.upper()}
+
+Please provide specific pip commands and file changes needed."""
+
+            typer.echo(f"🤖 Optimizing from {current_stack.upper()} → {target_stack.upper()}...")
+            
+            try:
+                response = client.chat(
+                    model="phi3.5:latest", 
+                    messages=[
+                        {"role": "user", "content": optimization_prompt}
+                    ]
+                )
+                
+                guidance = response['message']['content']
+                typer.echo(f"\n🤖 Optimization Guide:\n{guidance}")
+                
+                # Ask if user wants to proceed
+                if typer.confirm("\n💡 Would you like to apply these optimizations automatically?"):
+                    typer.echo("🔧 Auto-optimization not implemented yet. Please follow the manual steps above.")
+                    typer.echo("💡 Tip: Use 'rag-engine ask' for follow-up questions!")
+                
+            except Exception as e:
+                typer.echo(f"❌ Optimization guidance failed: {str(e)}", err=True)
+        else:
+            # Non-interactive mode
+            typer.echo(f"🔧 Non-interactive optimization from {current_stack} to {target_stack}")
+            typer.echo("💡 This would automatically optimize your setup (not implemented yet)")
+            typer.echo("💡 Use --interactive for AI-guided optimization")
+            
+    except Exception as e:
+        typer.echo(f"❌ Stack optimization failed: {str(e)}", err=True)
+        raise typer.Exit(1)
+
+
+@app.command()
+def dependency_audit(
+    show_sizes: bool = typer.Option(True, '--sizes/--no-sizes', help='Show estimated package sizes'),
+    unused_only: bool = typer.Option(False, '--unused-only', help='Only show potentially unused packages')
+):
+    """Audit current dependencies with AI-powered analysis."""
+    try:
+        typer.echo("🔍 Auditing current Python dependencies...")
+        
+        # Get currently installed packages
+        import subprocess
+        import sys
+        
+        result = subprocess.run([sys.executable, "-m", "pip", "list", "--format=freeze"], 
+                              capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            typer.echo("❌ Failed to get package list", err=True)
+            raise typer.Exit(1)
+        
+        installed_packages = result.stdout
+        
+        # Use AI to analyze dependencies
+        try:
+            import ollama
+            client = ollama.Client()
+            
+            audit_prompt = f"""Please audit these installed Python packages for a RAG Engine project:
+
+INSTALLED PACKAGES:
+{installed_packages}
+
+Please analyze:
+1. 📊 Large packages (>50MB) that might be bloat
+2. 🔍 Packages that seem unused for RAG functionality  
+3. 🎯 Lighter alternatives for heavy packages
+4. 📦 Which stack (DEMO/LOCAL/CLOUD/MINI/FULL) this setup resembles
+5. 💡 Specific recommendations to reduce bloat
+
+Focus on RAG-related packages: transformers, torch, faiss, sentence-transformers, ollama, openai, etc.
+Ignore common Python packages like pip, setuptools unless they're problematic."""
+
+            typer.echo("🤖 AI is analyzing your dependencies...")
+            
+            response = client.chat(
+                model="phi3.5:latest",
+                messages=[
+                    {"role": "user", "content": audit_prompt}
+                ]
+            )
+            
+            audit_results = response['message']['content']
+            typer.echo(f"\n🤖 Dependency Audit Results:\n{audit_results}")
+            
+        except ImportError:
+            typer.echo("⚠️ AI analysis not available (ollama-python not installed)")
+            typer.echo("📋 Raw package list:")
+            typer.echo(installed_packages)
+            
+        except Exception as e:
+            typer.echo(f"⚠️ AI analysis failed: {str(e)}")
+            typer.echo("📋 Raw package list:")
+            typer.echo(installed_packages)
+        
+    except Exception as e:
+        typer.echo(f"❌ Dependency audit failed: {str(e)}", err=True)
+        raise typer.Exit(1)
+
+
 def _get_example_config(template: str) -> str:
-    """Get example configuration based on template."""
+    """Generate example config content based on template."""
     if template == "advanced":
         return """# Advanced RAG Engine Configuration
 documents:
-  - type: pdf
-    path: ./documents/sample.pdf
-  - type: txt
-    path: ./documents/sample.txt
+  - type: file
+    path: "./documents"
+  - type: url
+    path: "https://example.com/docs"
 
 chunking:
   method: recursive
-  max_tokens: 512
-  overlap: 50
+  max_tokens: 1000
+  overlap: 100
 
 embedding:
   provider: openai
-  model: text-embedding-3-small
+  model: text-embedding-ada-002
   api_key: ${OPENAI_API_KEY}
 
 vectorstore:
-  provider: chroma
-  persist_directory: ./vector_store
+  provider: pinecone
+  persist_directory: "./vector_store"
 
 retrieval:
   top_k: 5
 
 prompting:
-  system_prompt: >
-    You are a helpful AI assistant. Answer questions based on the provided context.
-    Be accurate, concise, and cite sources when possible.
+  system_prompt: "You are an expert assistant that provides detailed answers based on the provided context."
 
 llm:
   provider: openai
   model: gpt-4
-  temperature: 0.3
-  api_key: ${OPENAI_API_KEY}
+  temperature: 0.2
 
 output:
-  method: console
+  method: text
 """
-    else:
+    else:  # basic template
         return """# Basic RAG Engine Configuration
 documents:
-  - type: txt
-    path: ./documents/sample.txt
+  - type: file
+    path: "./documents"
 
 chunking:
-  method: fixed
-  max_tokens: 256
-  overlap: 20
+  method: recursive
+  max_tokens: 500
+  overlap: 50
 
 embedding:
-  provider: huggingface
-  model: sentence-transformers/all-MiniLM-L6-v2
+  provider: sentence_transformers
+  model: all-MiniLM-L6-v2
 
 vectorstore:
-  provider: chroma
-  persist_directory: ./vector_store
+  provider: faiss
+  persist_directory: "./vector_store"
 
 retrieval:
   top_k: 3
 
 prompting:
-  system_prompt: "You are a helpful assistant."
+  system_prompt: "You are a helpful assistant that answers questions based on the provided context."
 
 llm:
-  provider: openai
-  model: gpt-3.5-turbo
+  provider: ollama
+  model: llama3.2:1b
   temperature: 0.7
-  api_key: ${OPENAI_API_KEY}
 
 output:
-  method: console
+  method: text
 """
 
 
 def _get_project_readme(name: str) -> str:
-    """Get project README content."""
+    """Generate README content for new project."""
     return f"""# {name}
 
 A RAG (Retrieval-Augmented Generation) project powered by RAG Engine.
 
 ## Quick Start
 
-1. **Add Documents**: Place your documents in the `./documents/` folder
-2. **Configure**: Edit `./configs/config.yml` with your settings and API keys
-3. **Build**: Run `rag-engine build --config configs/config.yml`
-4. **Chat**: Run `rag-engine chat --config configs/config.yml`
+1. **Add your documents:**
+   ```bash
+   # Copy your documents to the documents/ folder
+   cp /path/to/your/docs/* documents/
+   ```
+
+2. **Configure the system:**
+   ```bash
+   # Edit the configuration file
+   nano configs/config.yml
+   ```
+
+3. **Build the knowledge base:**
+   ```bash
+   rag-engine build --config configs/config.yml
+   ```
+
+4. **Start chatting:**
+   ```bash
+   rag-engine chat --config configs/config.yml
+   ```
 
 ## API Server
 
 Start the API server:
 ```bash
-rag-engine serve --config configs/config.yml --framework fastapi
+rag-engine serve --config configs/config.yml
 ```
 
-Available frameworks: `fastapi`, `flask`, `django`
+The API will be available at `http://localhost:8000`
 
-## Project Structure
+## Configuration
 
-```
-{name}/
-├── documents/          # Place your documents here
-├── configs/           # Configuration files
-│   └── config.yml    # Main configuration
-├── vector_store/     # Vector database storage
-└── README.md         # This file
-```
+Edit `configs/config.yml` to customize:
+- Document sources
+- Embedding models
+- Vector storage
+- LLM providers
+- Retrieval settings
 
-## Environment Variables
+## Need Help?
 
-Set these environment variables or add them to a `.env` file:
-
+Use the AI assistant:
 ```bash
-OPENAI_API_KEY=your_openai_api_key_here
+rag-engine ask "How do I add more documents?"
+rag-engine ask "Which embedding model should I use?"
+rag-engine ask "How do I optimize for speed?"
 ```
 
-## Learn More
+## Package Management
 
-- [RAG Engine Documentation](https://github.com/your-repo/rag-engine)
-- [Configuration Guide](https://github.com/your-repo/rag-engine/docs/config)
-- [API Reference](https://github.com/your-repo/rag-engine/docs/api)
+Analyze and optimize your dependencies:
+```bash
+# Analyze current package bloat
+rag-engine analyze-bloat
+
+# Audit dependencies
+rag-engine dependency-audit
+
+# Optimize for different stack
+rag-engine optimize-stack current_stack target_stack
+```
 """
+
+
+# ...existing code...

@@ -1,0 +1,24 @@
+# Core minimal requirements - what you need to get started
+# Goal: <100MB, installs in 30-60 seconds
+
+# Essential core
+typer>=0.12.1,<0.13.0
+pydantic>=2.7.0
+pyyaml>=6.0.0
+
+# Minimal web server (choose one)
+fastapi>=0.110.0
+uvicorn>=0.27.0
+
+# Basic text processing (no heavy NLP)
+beautifulsoup4>=4.12.0
+
+# OpenAI only (lightest LLM option - just HTTP calls)
+openai>=1.5.0
+
+# Simple in-memory vector store (no heavy dependencies)
+numpy>=1.24.0
+
+# Basic document processing (no PyTorch needed)
+PyPDF2>=3.0.0
+python-docx>=1.0.0

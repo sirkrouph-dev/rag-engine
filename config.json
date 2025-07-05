@@ -1,0 +1,35 @@
+{
+  "documents": [
+    {
+      "type": "file",
+      "path": "demo_document.md"
+    }
+  ],
+  "chunking": {
+    "method": "recursive",
+    "max_tokens": 500,
+    "overlap": 50
+  },
+  "embedding": {
+    "provider": "sentence_transformers",
+    "model": "all-MiniLM-L6-v2"
+  },
+  "vectorstore": {
+    "provider": "faiss",
+    "persist_directory": "./vector_store"
+  },
+  "retrieval": {
+    "top_k": 3
+  },
+  "prompting": {
+    "system_prompt": "You are a helpful assistant that answers questions based on the provided context. Always provide accurate information based on the documents."
+  },
+  "llm": {
+    "provider": "ollama",
+    "model": "llama3.2:1b",
+    "temperature": 0.7
+  },
+  "output": {
+    "method": "text"
+  }
+}

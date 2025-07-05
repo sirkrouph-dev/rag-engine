@@ -98,5 +98,35 @@ export default {
   async getComponentStatus(componentType) {
     const response = await api.get(`/orchestrator/components/${componentType}`)
     return response.data
+  },
+
+  // AI Assistant endpoints
+  async askAssistant(question, context = null, model = 'phi3.5:latest') {
+    const response = await api.post('/ai-assistant', {
+      question,
+      context,
+      model
+    })
+    return response.data
+  },
+
+  // Stack Management endpoints
+  async configureStack(stackType, customRequirements = null, configOverrides = null) {
+    const response = await api.post('/stack/configure', {
+      stack_type: stackType,
+      custom_requirements: customRequirements,
+      config_overrides: configOverrides
+    })
+    return response.data
+  },
+
+  async analyzeStack() {
+    const response = await api.get('/stack/analyze')
+    return response.data
+  },
+
+  async auditDependencies() {
+    const response = await api.get('/stack/audit')
+    return response.data
   }
 }

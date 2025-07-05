@@ -113,6 +113,10 @@
           <ChatBubbleLeftRightIcon class="w-4 h-4 mr-2" />
           Start Chatting
         </router-link>
+        <router-link to="/ai-assistant" class="btn btn-primary">
+          <SparklesIcon class="w-4 h-4 mr-2" />
+          AI Assistant
+        </router-link>
         <button 
           @click="buildPipeline" 
           :disabled="systemStore.isLoading"
@@ -141,7 +145,8 @@ import {
   CogIcon, 
   DocumentTextIcon, 
   ServerIcon,
-  Squares2X2Icon
+  Squares2X2Icon,
+  SparklesIcon
 } from '@heroicons/vue/24/outline'
 import { useSystemStore } from '../stores/system'
 import StatCard from '../components/StatCard.vue'

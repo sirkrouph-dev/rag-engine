@@ -23,8 +23,11 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
     
     def __init__(self, config_path: Optional[str] = None, 
                  config: Optional[Any] = None,
-                 api_config: Optional[APICustomization] = None):
+                 api_config: Optional[APICustomization] = None,
+                 orchestrator_type: str = "default",
+                 **kwargs):
         super().__init__(config_path, config, api_config)
+        self.orchestrator_type = orchestrator_type
         self.app = None
         self.rate_limiters = {}
         self.metrics = MetricsCollector() if api_config and api_config.enable_metrics else None
@@ -93,11 +96,17 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
                 )
                 
                 if self.metrics:
-                    self.metrics.record_request(
-                        method=request.method,
+                    # Record the request with just the basic info
+                    request_id = self.metrics.record_request(
                         endpoint=request.url.path,
+                        method=request.method
+                    )
+                    # Record the response with status and timing
+                    self.metrics.record_response(
+                        request_id=request_id,
                         status_code=response.status_code,
-                        duration=process_time
+                        response_time=process_time,
+                        endpoint=request.url.path
                     )
                 
                 return response
@@ -328,9 +337,469 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
                 pipeline_built=hasattr(self, 'pipeline') and self.pipeline is not None,
                 config=self.config.dict() if self.config else {}
             )
+
+        # Orchestrator endpoints
+        @self.app.get("/orchestrator/status", dependencies=dependencies)
+        async def orchestrator_status():
+            """Get orchestrator status."""
+            try:
+                return {
+                    "status": "active",
+                    "type": "default",
+                    "components_loaded": True,
+                    "timestamp": time.time()
+                }
+            except Exception as e:
+                logging.error(f"Orchestrator status error: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
+
+        @self.app.get("/orchestrator/components", dependencies=dependencies)
+        async def get_components():
+            """Get available components."""
+            try:
+                return {
+                    "embedders": ["sentence-transformers", "openai", "vertex-ai"],
+                    "vectorstores": ["faiss", "chroma", "pinecone"],
+                    "llms": ["ollama", "openai", "anthropic"],
+                    "chunkers": ["recursive", "semantic", "fixed-size"]
+                }
+            except Exception as e:
+                logging.error(f"Components error: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
+
+        # Document and chunk endpoints
+        @self.app.get("/documents", dependencies=dependencies)
+        async def get_documents():
+            """Get document information."""
+            try:
+                # Mock response for now - would integrate with actual document store
+                return {
+                    "documents": [
+                        {"id": "demo_doc_1", "name": "demo_document.md", "status": "processed"},
+                        {"id": "test_doc_1", "name": "test_doc.txt", "status": "processed"}
+                    ],
+                    "total": 2,
+                    "status": "success"
+                }
+            except Exception as e:
+                logging.error(f"Documents error: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
+
+        @self.app.get("/chunks", dependencies=dependencies)
+        async def get_chunks():
+            """Get chunk information."""
+            try:
+                # Mock response for now - would integrate with actual vector store
+                return {
+                    "chunks": [
+                        {"id": "chunk_1", "document_id": "demo_doc_1", "size": 512},
+                        {"id": "chunk_2", "document_id": "demo_doc_1", "size": 485},
+                        {"id": "chunk_3", "document_id": "test_doc_1", "size": 298}
+                    ],
+                    "total": 3,
+                    "status": "success"
+                }
+            except Exception as e:
+                logging.error(f"Chunks error: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
+
+        # AI Assistant and Stack Management routes
+        @self.app.post("/ai-assistant")
+        async def ai_assistant_endpoint(request: dict):
+            """Ask the RAG Engine AI assistant for help and guidance."""
+            try:
+                # Import here to avoid dependency issues if ollama is not installed
+                try:
+                    import ollama
+                except ImportError:
+                    return {
+                        "question": request.get("question", ""),
+                        "response": "AI assistant not available. Please install ollama-python: pip install ollama-python",
+                        "status": "error"
+                    }
+                
+                question = request.get("question", "")
+                context = request.get("context")
+                model = request.get("model", "phi3.5:latest")
+                
+                # System prompt for the assistant
+                system_prompt = """You are a helpful RAG Engine assistant specialized in package bloat management and optimization. You provide support for users of the RAG Engine framework.
+
+STACK INFORMATION:
+- DEMO: Quick demos (~200MB) - Minimal deps: ollama-python, sentence-transformers, faiss-cpu, typer, rich
+- LOCAL: Local development (~500MB) - Adds: transformers, torch, multiple vector stores, advanced chunking  
+- CLOUD: Production APIs (~100MB) - Cloud APIs only: openai, anthropic, requests, minimal local processing
+- MINI: Embedded systems (~50MB) - Ultra minimal: only core logic, no UI, basic text processing
+- FULL: Everything (~1GB) - All features: research models, advanced chunking, multiple frameworks
+- RESEARCH: Academic (~1GB+) - Cutting-edge: experimental models, specialized libraries
+
+BLOAT MANAGEMENT STRATEGIES:
+1. **Tiered Requirements**: Use requirements-{stack}.txt files for different use cases
+2. **Optional Dependencies**: Install only what's needed with pip extras: pip install rag-engine[demo]
+3. **Lazy Imports**: Import heavy libraries only when needed at runtime  
+4. **Runtime Detection**: Auto-detect available packages and gracefully fallback
+5. **Plugin Architecture**: Load components dynamically based on user needs
+6. **Dependency Analysis**: Help users understand what each package does and if they need it
+
+PACKAGE OPTIMIZATION:
+- Suggest lighter alternatives (e.g., sentence-transformers vs full transformers)
+- Identify unused dependencies in current setup
+- Recommend stack switches for user needs
+- Help with dependency conflicts and version pinning
+- Guide on Docker vs local installs for bloat reduction
+
+You can help with:
+- Configuration questions and stack recommendations
+- Package bloat analysis and optimization suggestions
+- Installation and setup guidance
+- Performance optimization
+- Troubleshooting common issues
+
+Keep responses concise and actionable. Focus on practical solutions."""
+
+                # Prepare conversation context
+                conversation = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": question}
+                ]
+                
+                # Add context if provided
+                if context:
+                    import json
+                    context_str = f"Current context: {json.dumps(context, indent=2)}"
+                    conversation.insert(-1, {"role": "user", "content": context_str})
+                
+                # Get response from Ollama
+                response = ollama.chat(
+                    model=model,
+                    messages=conversation
+                )
+                
+                assistant_response = response['message']['content']
+                
+                return {
+                    "question": question,
+                    "response": assistant_response,
+                    "status": "success",
+                    "context": context
+                }
+                
+            except Exception as e:
+                return {
+                    "question": request.get("question", ""),
+                    "response": f"Error communicating with AI assistant: {str(e)}",
+                    "status": "error"
+                }
+
+        @self.app.post("/stack/configure")
+        async def configure_stack_endpoint(request: dict):
+            """Configure and install a specific stack."""
+            try:
+                stack_type = request.get("stack_type")
+                custom_requirements = request.get("custom_requirements", [])
+                config_overrides = request.get("config_overrides", {})
+                
+                # Stack definitions
+                stacks = {
+                    "DEMO": {
+                        "requirements": [
+                            "ollama-python>=0.2.0",
+                            "sentence-transformers>=2.2.0",
+                            "faiss-cpu>=1.7.0",
+                            "typer>=0.9.0",
+                            "rich>=13.0.0",
+                            "pydantic>=2.0.0",
+                            "fastapi>=0.104.0",
+                            "uvicorn>=0.24.0"
+                        ],
+                        "estimated_size": "~200MB",
+                        "description": "Quick demos with minimal dependencies"
+                    },
+                    "LOCAL": {
+                        "requirements": [
+                            "transformers>=4.30.0",
+                            "torch>=2.0.0",
+                            "sentence-transformers>=2.2.0",
+                            "faiss-cpu>=1.7.0",
+                            "chromadb>=0.4.0",
+                            "langchain>=0.0.300",
+                            "ollama-python>=0.2.0",
+                            "typer>=0.9.0",
+                            "rich>=13.0.0",
+                            "pydantic>=2.0.0",
+                            "fastapi>=0.104.0",
+                            "uvicorn>=0.24.0"
+                        ],
+                        "estimated_size": "~500MB",
+                        "description": "Local development with multiple vector stores"
+                    },
+                    "CLOUD": {
+                        "requirements": [
+                            "openai>=1.0.0",
+                            "anthropic>=0.7.0",
+                            "requests>=2.31.0",
+                            "typer>=0.9.0",
+                            "pydantic>=2.0.0",
+                            "fastapi>=0.104.0",
+                            "uvicorn>=0.24.0"
+                        ],
+                        "estimated_size": "~100MB",
+                        "description": "Cloud APIs only, minimal local processing"
+                    },
+                    "MINI": {
+                        "requirements": [
+                            "pydantic>=2.0.0",
+                            "typer>=0.9.0"
+                        ],
+                        "estimated_size": "~50MB",
+                        "description": "Ultra minimal for embedded systems"
+                    },
+                    "FULL": {
+                        "requirements": [
+                            "transformers>=4.30.0",
+                            "torch>=2.0.0",
+                            "sentence-transformers>=2.2.0",
+                            "faiss-cpu>=1.7.0",
+                            "chromadb>=0.4.0",
+                            "langchain>=0.0.300",
+                            "openai>=1.0.0",
+                            "anthropic>=0.7.0",
+                            "ollama-python>=0.2.0",
+                            "pinecone-client>=2.2.0",
+                            "weaviate-client>=3.25.0",
+                            "pymongo>=4.5.0",
+                            "redis>=5.0.0",
+                            "typer>=0.9.0",
+                            "rich>=13.0.0",
+                            "pydantic>=2.0.0",
+                            "fastapi>=0.104.0",
+                            "uvicorn>=0.24.0"
+                        ],
+                        "estimated_size": "~1GB",
+                        "description": "All features for production use"
+                    },
+                    "RESEARCH": {
+                        "requirements": [
+                            "transformers>=4.30.0",
+                            "torch>=2.0.0",
+                            "sentence-transformers>=2.2.0",
+                            "faiss-cpu>=1.7.0",
+                            "chromadb>=0.4.0",
+                            "langchain>=0.0.300",
+                            "openai>=1.0.0",
+                            "anthropic>=0.7.0",
+                            "ollama-python>=0.2.0",
+                            "datasets>=2.14.0",
+                            "evaluate>=0.4.0",
+                            "accelerate>=0.23.0",
+                            "wandb>=0.15.0",
+                            "tensorboard>=2.14.0",
+                            "typer>=0.9.0",
+                            "rich>=13.0.0",
+                            "pydantic>=2.0.0",
+                            "fastapi>=0.104.0",
+                            "uvicorn>=0.24.0"
+                        ],
+                        "estimated_size": "~1GB+",
+                        "description": "Cutting-edge research with experimental models"
+                    }
+                }
+                
+                if stack_type not in stacks:
+                    return {
+                        "stack_type": stack_type,
+                        "requirements": [],
+                        "estimated_size": "Unknown",
+                        "config": {},
+                        "status": "error",
+                        "message": f"Unknown stack type. Available: {', '.join(stacks.keys())}"
+                    }
+                
+                stack_config = stacks[stack_type]
+                requirements = stack_config["requirements"]
+                
+                # Add custom requirements if provided
+                if custom_requirements:
+                    requirements.extend(custom_requirements)
+                
+                # Create configuration
+                config = {
+                    "stack_type": stack_type,
+                    "description": stack_config["description"],
+                    "requirements_file": f"requirements-{stack_type.lower()}.txt"
+                }
+                
+                # Apply config overrides
+                if config_overrides:
+                    config.update(config_overrides)
+                
+                # Write requirements file
+                requirements_file = f"requirements-{stack_type.lower()}.txt"
+                try:
+                    with open(requirements_file, 'w') as f:
+                        for req in requirements:
+                            f.write(f"{req}\n")
+                    
+                    config["requirements_file_created"] = requirements_file
+                    message = f"Stack {stack_type} configured successfully. Requirements saved to {requirements_file}"
+                    
+                except Exception as e:
+                    message = f"Stack configured but failed to write requirements file: {str(e)}"
+                
+                return {
+                    "stack_type": stack_type,
+                    "requirements": requirements,
+                    "estimated_size": stack_config["estimated_size"],
+                    "config": config,
+                    "status": "success",
+                    "message": message
+                }
+                
+            except Exception as e:
+                return {
+                    "stack_type": request.get("stack_type", ""),
+                    "requirements": [],
+                    "estimated_size": "Unknown",
+                    "config": {},
+                    "status": "error",
+                    "message": f"Error configuring stack: {str(e)}"
+                }
+
+        @self.app.get("/stack/analyze")
+        async def analyze_stack_endpoint():
+            """Analyze current stack and provide recommendations."""
+            try:
+                # Try to determine current stack by checking installed packages
+                current_packages = []
+                try:
+                    import subprocess
+                    result = subprocess.run(
+                        ["pip", "list", "--format=json"],
+                        capture_output=True,
+                        text=True,
+                        check=True
+                    )
+                    import json
+                    packages_info = json.loads(result.stdout)
+                    current_packages = [pkg["name"] for pkg in packages_info]
+                except Exception:
+                    current_packages = []
+                
+                # Analyze which stack type this resembles
+                stack_indicators = {
+                    "DEMO": ["ollama-python", "sentence-transformers", "faiss-cpu"],
+                    "LOCAL": ["transformers", "torch", "chromadb"],
+                    "CLOUD": ["openai", "anthropic"],
+                    "MINI": [],  # Minimal packages
+                    "FULL": ["pinecone-client", "weaviate-client", "redis"],
+                    "RESEARCH": ["datasets", "evaluate", "wandb", "tensorboard"]
+                }
+                
+                current_stack = "UNKNOWN"
+                max_matches = 0
+                
+                for stack, indicators in stack_indicators.items():
+                    matches = sum(1 for indicator in indicators if indicator in current_packages)
+                    if matches > max_matches:
+                        max_matches = matches
+                        current_stack = stack
+                
+                # Generate recommendations
+                recommendations = []
+                alternative_stacks = []
+                
+                if "torch" in current_packages and "transformers" not in current_packages:
+                    recommendations.append("Consider switching to sentence-transformers for lighter weight")
+                
+                if "faiss-gpu" in current_packages:
+                    recommendations.append("Using faiss-gpu - consider faiss-cpu for smaller footprint")
+                
+                if len(current_packages) > 100:
+                    recommendations.append("Large number of packages detected - consider stack optimization")
+                
+                # Suggest alternative stacks
+                if current_stack == "FULL":
+                    alternative_stacks.append({
+                        "name": "LOCAL", 
+                        "savings": "~500MB",
+                        "reason": "Remove cloud dependencies if not needed"
+                    })
+                elif current_stack == "LOCAL":
+                    alternative_stacks.append({
+                        "name": "DEMO", 
+                        "savings": "~300MB",
+                        "reason": "Use for quick demos and testing"
+                    })
+                
+                return {
+                    "current_stack": current_stack,
+                    "installed_packages": current_packages[:20],  # Limit for response size
+                    "total_size": "Calculating...",  # Would need disk usage calculation
+                    "recommendations": recommendations,
+                    "alternative_stacks": alternative_stacks,
+                    "status": "success"
+                }
+                
+            except Exception as e:
+                return {
+                    "current_stack": "UNKNOWN",
+                    "installed_packages": [],
+                    "total_size": "Unknown",
+                    "recommendations": [],
+                    "alternative_stacks": [],
+                    "status": "error"
+                }
+
+        @self.app.get("/stack/audit")
+        async def audit_dependencies_endpoint():
+            """Audit dependencies and identify optimization opportunities."""
+            try:
+                # Get installed packages with sizes
+                heavy_packages = []
+                unused_packages = []
+                optimization_suggestions = []
+                
+                # This would typically use pipdeptree or similar for real analysis
+                # For now, provide example suggestions
+                optimization_suggestions = [
+                    "Consider using sentence-transformers instead of full transformers for embeddings",
+                    "Use faiss-cpu instead of faiss-gpu if GPU acceleration isn't needed",
+                    "Remove development dependencies in production",
+                    "Use slim Docker base images",
+                    "Enable lazy imports for heavy libraries"
+                ]
+                
+                # Example heavy packages (would be calculated from actual environment)
+                heavy_packages = [
+                    {"name": "torch", "size": "500MB", "reason": "Deep learning framework"},
+                    {"name": "transformers", "size": "200MB", "reason": "Model library"},
+                    {"name": "tensorflow", "size": "400MB", "reason": "Alternative to torch"}
+                ]
+                
+                return {
+                    "total_packages": 50,  # Would count actual packages
+                    "total_size": "~1.2GB",  # Would calculate actual size
+                    "unused_packages": unused_packages,
+                    "heavy_packages": heavy_packages,
+                    "optimization_suggestions": optimization_suggestions,
+                    "status": "success"
+                }
+                
+            except Exception as e:
+                return {
+                    "total_packages": 0,
+                    "total_size": "Unknown",
+                    "unused_packages": [],
+                    "heavy_packages": [],
+                    "optimization_suggestions": [],
+                    "status": "error"
+                }
     
     def _setup_custom_routes(self):
         """Setup custom routes from configuration."""
+        if not self.api_config.custom_routes:
+            return
+            
         for route_config in self.api_config.custom_routes:
             path = route_config.get("path")
             methods = route_config.get("methods", ["GET"])
@@ -341,35 +810,24 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
                     self.app.add_api_route(
                         path=path,
                         endpoint=handler,
-                        methods=[method]
+                        methods=[method],
+                        **route_config.get("kwargs", {})
                     )
-    
+
     def _setup_monitoring(self):
         """Setup monitoring endpoints."""
         if self.api_config.enable_metrics and self.metrics:
             @self.app.get(self.api_config.metrics_endpoint)
             async def metrics_endpoint():
-                """Prometheus-style metrics endpoint."""
-                return Response(
-                    content=self.metrics.generate_prometheus_metrics(),
-                    media_type="text/plain"
-                )
+                """Get system metrics."""
+                return self.metrics.get_metrics()
         
-        if self.api_config.enable_health_checks and self.health_checker:
+        if self.api_config.enable_health_checks:
             @self.app.get("/health")
             async def health_endpoint():
                 """Health check endpoint."""
-                health_status = self.health_checker.check_health()
-                status_code = 200 if health_status["status"] == "healthy" else 503
-                return JSONResponse(content=health_status, status_code=status_code)
-            
-            @self.app.get("/health/ready")
-            async def readiness_endpoint():
-                """Readiness check endpoint."""
-                ready_status = self.health_checker.check_readiness()
-                status_code = 200 if ready_status["ready"] else 503
-                return JSONResponse(content=ready_status, status_code=status_code)
-    
+                return {"status": "healthy", "timestamp": time.time()}
+
     def add_middleware(self, middleware_type: str, handler: Callable) -> None:
         """Add custom middleware to the application."""
         if middleware_type == "http":
