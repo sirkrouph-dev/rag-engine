@@ -6,48 +6,117 @@
 
 ```
 rag_engine/
+├── 📁 archive/                 # Legacy files and completed plans
+│   ├── debug_base_api.py       # Legacy debugging script
+│   ├── fix_cli.py              # Temporary fix script (completed)
+│   ├── RESTRUCTURING_PLAN.md   # Completed restructuring plan
+│   └── ...                     # Other archived files
+│
+├── 📁 configs/                 # Configuration files
+│   ├── config.json             # Main configuration file
+│   ├── production/             # Production configurations
+│   ├── enhanced_production.json # Enhanced production config
+│   └── ...                     # Other config files
+│
+├── 📁 docker/                  # Docker configurations
+│   ├── docker-compose.yml      # Development Docker setup
+│   ├── docker-compose.demo.yml # Demo Docker setup
+│   ├── docker-compose.production.yml # Production Docker setup
+│   ├── Dockerfile              # Container definition
+│   └── nginx.conf              # Nginx configuration
+│
 ├── 📁 docs/                    # Documentation
 │   ├── api/                    # API framework documentation
 │   ├── components/             # Component documentation
 │   ├── deployment/             # Deployment guides
-│   └── development/            # Development docs
+│   │   ├── DEPLOYMENT.md       # Main deployment guide
+│   │   ├── docker.md           # Docker deployment
+│   │   ├── production.md       # Production deployment
+│   │   └── SCALING.md          # Scaling guide
+│   ├── development/            # Development docs
+│   │   ├── architecture.md     # System architecture
+│   │   ├── contributing.md     # Contribution guidelines
+│   │   └── rag_engine_design.md # Design document
+│   └── guides/                 # User guides
+│       ├── AI_ASSISTANT_INTEGRATION.md # AI assistant guide
+│       ├── BLOAT_REDUCTION.md  # Dependency management
+│       ├── DEMO_README.md      # Demo documentation
+│       ├── ENHANCED_API_GUIDE.md # Enhanced API guide
+│       ├── FRIENDS_DEMO.md     # Friends demo guide
+│       ├── GETTING_STARTED.md  # Getting started guide
+│       ├── INSTANT_DEMO.md     # Instant demo guide
+│       ├── ORCHESTRATION_GUIDE.md # Orchestration guide
+│       ├── QUICK_DEMO_SETUP.md # Quick demo setup
+│       └── TESTING_GUIDE.md    # Testing guide
 │
 ├── 📁 examples/                # Example configurations and scripts
 │   ├── configs/                # Example configuration files
 │   ├── scripts/                # Example Python scripts
+│   ├── ai_assistant_demo.md    # AI assistant demo example
+│   ├── demo_document.md        # Demo document for testing
 │   ├── quickstart.md           # Quick start guide
 │   └── README.md               # Examples documentation
 │
 ├── 📁 frontend/                # Vue.js frontend application
 │   ├── src/                    # Frontend source code
+│   │   ├── components/         # Vue components
+│   │   ├── views/              # Vue views/pages
+│   │   │   ├── AIAssistant.vue # AI assistant interface
+│   │   │   ├── Chat.vue        # Chat interface
+│   │   │   ├── Dashboard.vue   # Main dashboard
+│   │   │   └── ...             # Other views
+│   │   ├── services/           # API services
+│   │   └── App.vue             # Main app component
 │   ├── package.json            # Frontend dependencies
 │   ├── vite.config.js          # Vite configuration
+│   ├── FRONTEND_GUIDE.md       # Frontend development guide
 │   └── README.md               # Frontend documentation
 │
 ├── 📁 rag_engine/              # Main package
 │   ├── config/                 # Configuration modules
 │   ├── core/                   # Core RAG components
+│   │   ├── component_registry.py # Component registry
+│   │   ├── orchestration.py    # Orchestration strategies
+│   │   ├── embedder.py         # Embedding components
+│   │   └── llm.py              # LLM components
 │   ├── interfaces/             # API and CLI interfaces
+│   │   ├── api.py              # Base API interface
+│   │   ├── cli.py              # Command-line interface
+│   │   └── fastapi_enhanced.py # Enhanced FastAPI server
 │   └── plugins/                # Plugin system
+│
+├── 📁 requirements/            # Dependency management
+│   ├── base.txt                # Core dependencies
+│   └── stacks/                 # Stack-specific requirements
+│       ├── demo.txt            # DEMO stack dependencies
+│       ├── local.txt           # LOCAL stack dependencies
+│       ├── cloud.txt           # CLOUD stack dependencies
+│       └── ...                 # Other stack requirements
+│
+├── 📁 scripts/                 # Utility scripts
+│   ├── ai_setup.py             # AI-powered setup assistant
+│   ├── ai_setup.bat            # AI setup batch script
+│   └── quick_setup.bat         # Quick setup batch script
 │
 ├── 📁 tests/                   # All test files
 │   ├── configs/                # Test configurations
 │   ├── fixtures/               # Test data
 │   ├── integration/            # Integration tests
+│   ├── legacy/                 # Legacy test files
 │   ├── unit/                   # Unit tests
-│   └── *.py                    # Test modules
+│   ├── test_comprehensive.py   # Comprehensive test suite
+│   └── README.md               # Testing documentation
 │
 ├── 📁 .github/                 # GitHub workflows and templates
 ├── 📁 .vscode/                 # VS Code configuration
 ├── 📄 .gitignore               # Git ignore rules
-├── 📄 docker-compose.yml       # Development Docker setup
-├── 📄 docker-compose.production.yml  # Advanced Docker setup
-├── 📄 Dockerfile               # Container definition
-├── 📄 nginx.conf               # Nginx configuration
+├── 📄 instant_demo.bat         # One-click demo setup
+├── 📄 PROJECT_STRUCTURE.md     # This file
 ├── 📄 pyproject.toml           # Python project configuration
 ├── 📄 pytest.ini              # Test configuration
-├── 📄 requirements.txt         # Python dependencies
-├── 📄 README.md                # Main project documentation
+├── 📄 requirements.txt         # Main Python dependencies
+└── 📄 README.md                # Main project documentation
+```
 ├── 📄 DEPLOYMENT.md            # Deployment instructions
 ├── 📄 ENHANCED_API_GUIDE.md    # API usage guide
 ├── 📄 SCALING.md               # Scaling information
