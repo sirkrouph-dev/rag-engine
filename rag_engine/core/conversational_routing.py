@@ -113,6 +113,19 @@ class ConversationContext:
         return datetime.now().isoformat()
 
 
+@dataclass
+class RoutingDecision:
+    """Final routing decision with complete analysis."""
+    response: str
+    strategy: ResponseStrategy
+    category: QueryCategory
+    topic_analysis: TopicAnalysis
+    classification: QueryClassification
+    reasoning_chain: List[str]
+    confidence: float
+    metadata: Dict[str, Any]
+
+
 class ConversationalRouter:
     """Advanced conversational routing system."""
     
