@@ -1,0 +1,114 @@
+# ================================
+# Production Docker Image
+# Multi-stage build for optimized production deployment
+# ================================
+
+# Build stage
+FROM python:3.10-slim as builder
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies for building
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements and install Python dependencies
+COPY requirements/ /tmp/requirements/
+COPY requirements.txt /tmp/
+
+# Install production dependencies
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -r /tmp/requirements/production.txt && \
+    pip install -r /tmp/requirements.txt
+
+# ================================
+# Production stage
+# ================================
+
+FROM python:3.10-slim as production
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    PYTHONPATH="/app" \
+    RAG_ENGINE_ENV=production
+
+# Install runtime system dependencies
+RUN apt-get update && apt-get install -y \
+    # Essential runtime dependencies
+    curl \
+    ca-certificates \
+    # Health check dependencies
+    netcat-openbsd \
+    # Monitoring dependencies
+    procps \
+    # Security updates
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create non-root user for security
+RUN groupadd -r ragengine && \
+    useradd -r -g ragengine -d /app -s /bin/bash ragengine
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+
+# Create application directory
+WORKDIR /app
+
+# Copy application code
+COPY rag_engine/ ./rag_engine/
+COPY configs/ ./configs/
+COPY docker/ ./docker/
+COPY templates/ ./templates/
+COPY scripts/ ./scripts/
+COPY pyproject.toml pytest.ini ./
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data /app/cache && \
+    chown -R ragengine:ragengine /app
+
+# Copy entrypoint script
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh && \
+    chown ragengine:ragengine /entrypoint.sh
+
+# Switch to non-root user
+USER ragengine
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/health/live || exit 1
+
+# Expose port
+EXPOSE 8000
+
+# Default command
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["python", "-m", "rag_engine.interfaces.production_api"]
+
+# ================================
+# Build metadata
+# ================================
+
+LABEL maintainer="RAG Engine Team" \
+      version="1.0.0" \
+      description="Production-ready RAG Engine with advanced AI capabilities" \
+      org.opencontainers.image.title="RAG Engine" \
+      org.opencontainers.image.description="Modular AI-powered framework for Retrieval-Augmented Generation" \
+      org.opencontainers.image.version="1.0.0" \
+      org.opencontainers.image.vendor="RAG Engine Project" \
+      org.opencontainers.image.licenses="MIT"

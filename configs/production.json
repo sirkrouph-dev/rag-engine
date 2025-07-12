@@ -1,0 +1,145 @@
+{
+  "environment": "production",
+  "app": {
+    "name": "RAG Engine",
+    "version": "1.0.0",
+    "debug": false,
+    "log_level": "INFO"
+  },
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "workers": 4,
+    "timeout": 300,
+    "keepalive": 2
+  },
+  "security": {
+    "jwt_secret_key": "${JWT_SECRET_KEY}",
+    "jwt_algorithm": "HS256",
+    "jwt_expiration": 3600,
+    "api_key_rotation_days": 30,
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_minute": 100,
+      "burst_limit": 200
+    },
+    "cors": {
+      "enabled": true,
+      "origins": ["https://yourdomain.com"],
+      "methods": ["GET", "POST", "PUT", "DELETE"],
+      "headers": ["Content-Type", "Authorization"]
+    }
+  },
+  "database": {
+    "type": "postgresql",
+    "host": "${DB_HOST}",
+    "port": 5432,
+    "name": "${DB_NAME}",
+    "user": "${DB_USER}",
+    "password": "${DB_PASSWORD}",
+    "pool_size": 20,
+    "max_overflow": 30,
+    "pool_timeout": 30,
+    "pool_recycle": 3600,
+    "ssl_mode": "require"
+  },
+  "redis": {
+    "host": "${REDIS_HOST}",
+    "port": 6379,
+    "password": "${REDIS_PASSWORD}",
+    "db": 0,
+    "max_connections": 50,
+    "retry_on_timeout": true,
+    "socket_keepalive": true,
+    "socket_keepalive_options": {}
+  },
+  "monitoring": {
+    "health_check_interval": 30,
+    "metrics_enabled": true,
+    "metrics_port": 9090,
+    "prometheus_enabled": true,
+    "log_aggregation": {
+      "enabled": true,
+      "elasticsearch_host": "${ELASTICSEARCH_HOST}",
+      "logstash_host": "${LOGSTASH_HOST}"
+    }
+  },
+  "circuit_breaker": {
+    "failure_threshold": 5,
+    "recovery_timeout": 60,
+    "expected_exception": ["requests.exceptions.RequestException"]
+  },
+  "retry_policy": {
+    "max_attempts": 3,
+    "backoff_factor": 2,
+    "max_delay": 300
+  },
+  "llm": {
+    "provider": "openai",
+    "model": "gpt-4-turbo",
+    "api_key": "${OPENAI_API_KEY}",
+    "timeout": 60,
+    "max_retries": 3,
+    "circuit_breaker_enabled": true
+  },
+  "embedder": {
+    "provider": "openai",
+    "model": "text-embedding-3-large",
+    "api_key": "${OPENAI_API_KEY}",
+    "timeout": 30,
+    "max_retries": 3,
+    "cache_embeddings": true
+  },
+  "vectorstore": {
+    "type": "pinecone",
+    "api_key": "${PINECONE_API_KEY}",
+    "environment": "${PINECONE_ENVIRONMENT}",
+    "index_name": "${PINECONE_INDEX}",
+    "dimension": 3072,
+    "metric": "cosine",
+    "replicas": 2,
+    "shards": 2
+  },
+  "caching": {
+    "enabled": true,
+    "ttl": 3600,
+    "max_size": 1000,
+    "strategy": "lru"
+  },
+  "backup": {
+    "enabled": true,
+    "schedule": "0 2 * * *",
+    "retention_days": 30,
+    "storage": {
+      "type": "s3",
+      "bucket": "${BACKUP_S3_BUCKET}",
+      "region": "${AWS_REGION}",
+      "access_key": "${AWS_ACCESS_KEY_ID}",
+      "secret_key": "${AWS_SECRET_ACCESS_KEY}"
+    }
+  },
+  "alerting": {
+    "enabled": true,
+    "channels": {
+      "slack": {
+        "webhook_url": "${SLACK_WEBHOOK_URL}",
+        "channel": "#alerts"
+      },
+      "email": {
+        "smtp_host": "${SMTP_HOST}",
+        "smtp_port": 587,
+        "username": "${SMTP_USERNAME}",
+        "password": "${SMTP_PASSWORD}",
+        "from_email": "alerts@yourdomain.com",
+        "to_emails": ["admin@yourdomain.com"]
+      }
+    },
+    "thresholds": {
+      "error_rate": 0.01,
+      "response_time_p95": 2000,
+      "cpu_usage": 80,
+      "memory_usage": 85,
+      "disk_usage": 90
+    }
+  }
+}

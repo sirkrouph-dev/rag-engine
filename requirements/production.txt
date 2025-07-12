@@ -1,0 +1,98 @@
+# Production-grade dependencies for RAG Engine
+# Core production requirements with security and monitoring
+
+# ================================
+# Core Production Dependencies
+# ================================
+
+# Security
+PyJWT==2.8.0                    # JWT authentication
+cryptography==41.0.7            # Encryption and security
+bleach==6.1.0                   # HTML sanitization
+bcrypt==4.1.2                   # Password hashing
+passlib[bcrypt]==1.7.4         # Password utilities
+
+# Monitoring and Metrics
+prometheus-client==0.19.0       # Prometheus metrics
+psutil==5.9.6                   # System metrics
+structlog==23.2.0               # Structured logging
+
+# Database and Caching
+redis==5.0.1                    # Redis caching
+asyncpg==0.29.0                 # PostgreSQL async driver
+SQLAlchemy==2.0.23              # Database ORM
+alembic==1.13.0                 # Database migrations
+
+# HTTP and API
+httpx==0.25.2                   # HTTP client with retry
+aiohttp==3.9.1                  # Async HTTP client
+requests==2.31.0                # Synchronous HTTP client
+
+# Data Validation
+pydantic==2.5.0                 # Data validation
+pydantic-settings==2.1.0       # Settings management
+
+# Rate Limiting and Circuit Breakers
+tenacity==8.2.3                 # Retry mechanisms
+circuit-breaker==1.0.1          # Circuit breaker pattern
+
+# Background Tasks
+celery==5.3.4                   # Task queue
+kombu==5.3.4                    # Message transport
+
+# Production WSGI/ASGI Servers
+gunicorn==21.2.0                # WSGI server
+uvicorn[standard]==0.24.0       # ASGI server
+
+# Health Checks and Testing
+pytest-asyncio==0.21.1          # Async testing
+pytest-cov==4.1.0               # Coverage testing
+httpx==0.25.2                   # HTTP testing
+
+# Observability
+opentelemetry-api==1.21.0       # OpenTelemetry tracing
+opentelemetry-sdk==1.21.0       # OpenTelemetry SDK
+opentelemetry-instrumentation-fastapi==0.42b0  # FastAPI instrumentation
+
+# Configuration Management
+python-dotenv==1.0.0            # Environment variables
+click==8.1.7                    # CLI framework
+
+# File Processing and Utilities
+python-multipart==0.0.6         # File upload handling
+email-validator==2.1.0          # Email validation
+phonenumbers==8.13.26           # Phone number validation
+
+# Backup and Storage
+boto3==1.34.0                   # AWS SDK
+azure-storage-blob==12.19.0     # Azure blob storage
+google-cloud-storage==2.10.0    # Google Cloud storage
+
+# Development and Debugging (production-safe)
+rich==13.7.0                    # Rich console output
+typer==0.9.0                    # CLI framework
+
+# ================================
+# Version Compatibility Notes
+# ================================
+# All versions are pinned for production stability
+# Update carefully and test thoroughly before deploying
+# Check for security updates monthly
+
+# ================================
+# Optional Production Add-ons
+# ================================
+# Uncomment as needed for your deployment
+
+# Sentry for error tracking
+# sentry-sdk[fastapi]==1.38.0
+
+# New Relic for APM
+# newrelic==9.2.0
+
+# DataDog for monitoring
+# ddtrace==2.5.0
+
+# ELK Stack integration
+# elasticsearch==8.11.0
+# python-logstash==0.4.8
