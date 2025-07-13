@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Response, 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBearer, APIKeyHeader
+from fastapi.security import HTTPBearer, APIKeyHeader, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List, Callable
 import uvicorn
@@ -16,6 +16,11 @@ import asyncio
 
 from .enhanced_base_api import EnhancedBaseAPIServer, APICustomization, AuthMethod, RateLimitType
 from .monitoring import MetricsCollector, HealthChecker
+from .security import SecurityManager, SecurityConfig
+from ..core.security import InputValidator, AuditLogger, AuthenticationManager
+from ..core.reliability import CircuitBreaker, RetryHandler, HealthChecker as CoreHealthChecker
+
+logger = logging.getLogger(__name__)
 
 
 class FastAPIEnhanced(EnhancedBaseAPIServer):
@@ -33,40 +38,75 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
         self.metrics = MetricsCollector() if api_config and api_config.enable_metrics else None
         self.health_checker = HealthChecker() if api_config and api_config.enable_health_checks else None
         
+        # Initialize comprehensive security components
+        self.security_manager = None
+        self.input_validator = InputValidator()
+        self.audit_logger = AuditLogger()
+        self.auth_manager = None
+        
+        # Initialize reliability components
+        self.circuit_breakers = {}
+        self.retry_handlers = {}
+        
+        # Pipeline will be set when built
+        self.pipeline = None
+        
     def create_app(self) -> FastAPI:
         """Create and configure the enhanced FastAPI application."""
         if self.app is not None:
             return self.app
             
-        # Create FastAPI app with customization
-        app_kwargs = {
-            "title": "Enhanced RAG Engine API",
-            "description": "Production-ready RAG Engine with full customization",
-            "version": "2.0.0",
-        }
+        self.app = FastAPI(
+            title="RAG Engine API",
+            description="Enhanced RAG Engine with comprehensive security and monitoring",
+            version="1.0.0",
+            docs_url=self.api_config.docs_url if self.api_config.enable_docs else None,
+            openapi_url=self.api_config.openapi_url if self.api_config.enable_docs else None
+        )
         
-        if self.api_config.enable_docs:
-            app_kwargs["docs_url"] = self.api_config.docs_url
-            app_kwargs["openapi_url"] = self.api_config.openapi_url
-        else:
-            app_kwargs["docs_url"] = None
-            app_kwargs["openapi_url"] = None
-            
-        self.app = FastAPI(**app_kwargs)
+        # Initialize security components
+        self._setup_security_components()
         
-        # Apply customizations
+        # Setup application components in order
         self._setup_middleware()
         self._setup_authentication()
         self._setup_rate_limiting()
         self._setup_error_handlers()
         self._setup_core_routes()
         self._setup_custom_routes()
+        self._setup_routing_endpoints()
         self._setup_monitoring()
         
         return self.app
     
+    def _setup_security_components(self):
+        """Initialize comprehensive security components."""
+        # Create security configuration
+        security_config = SecurityConfig(
+            enable_auth=self.api_config.auth_method != AuthMethod.NONE,
+            auth_method=self.api_config.auth_method.value if self.api_config.auth_method != AuthMethod.NONE else "none",
+            api_keys=self.api_config.api_keys,
+            jwt_secret=self.api_config.jwt_secret,
+            enable_rate_limiting=self.api_config.enable_rate_limiting,
+            rate_limit_per_minute=self.api_config.requests_per_minute,
+            cors_origins=self.api_config.cors_origins
+        )
+        
+        # Initialize security manager
+        self.security_manager = SecurityManager(security_config)
+        
+        # Initialize authentication manager if JWT is enabled
+        if self.api_config.auth_method == AuthMethod.JWT and self.api_config.jwt_secret:
+            self.auth_manager = AuthenticationManager(
+                secret_key=self.api_config.jwt_secret,
+                token_expiration=3600
+            )
+    
     def _setup_middleware(self):
         """Setup middleware based on configuration."""
+        if not self.app:
+            return
+            
         # CORS
         if self.api_config.cors_origins:
             self.app.add_middleware(
@@ -196,11 +236,11 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
         elif self.api_config.auth_method == AuthMethod.JWT:
             bearer_scheme = HTTPBearer()
             
-            async def verify_jwt(token: str = Depends(bearer_scheme)):
+            async def verify_jwt(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
                 try:
                     import jwt
                     payload = jwt.decode(
-                        token.credentials,
+                        credentials.credentials,
                         self.api_config.jwt_secret,
                         algorithms=["HS256"]
                     )
