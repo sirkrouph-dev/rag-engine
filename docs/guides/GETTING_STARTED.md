@@ -187,11 +187,12 @@ npm install
 
 ## Support
 
-This is an experimental project. For issues:
+This is an experimental project with advanced features in testing. For issues:
 1. Check the troubleshooting section above
 2. Review the comprehensive documentation
 3. Check browser console and backend logs for errors
 4. Ensure all prerequisites are correctly installed
+5. Note that some features are experimental and may have limitations
 
 ## Quick Reference
 
