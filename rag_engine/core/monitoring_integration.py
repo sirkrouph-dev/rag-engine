@@ -380,47 +380,38 @@ def pipeline_monitored(monitor: MonitoringIntegration):
 
 
 # Example usage in RAG components
-class MonitoredRAGExample:
-    """Example of how to apply monitoring to RAG components."""
-    
-    def __init__(self, config: Dict[str, Any]):
-        self.monitor = MonitoringIntegration(config)
-    
-    @llm_monitored(monitor=None)
-    async def generate_response(self, prompt: str) -> str:
-        """Generate LLM response with full monitoring."""
-        # Your actual LLM call here
-        # This will be monitored for performance, errors, and health
-        await asyncio.sleep(0.1)  # Simulate LLM call
-        return "Generated response"
-    
-    @embedding_monitored(monitor=None)
-    async def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
-        """Generate embeddings with full monitoring."""
-        # Your actual embedding call here
-        # This will be monitored for performance, errors, and health
-        await asyncio.sleep(0.05)  # Simulate embedding call
-        return [[0.1, 0.2, 0.3] for _ in texts]
-    
-    @vectorstore_monitored(monitor=None)
-    async def query_vectorstore(self, query_embedding: List[float]) -> List[Dict[str, Any]]:
-        """Query vector store with full monitoring."""
-        # Your actual vector store query here
-        # This will be monitored for performance, errors, and health
-        await asyncio.sleep(0.02)  # Simulate vector store query
-        return [{"id": "doc1", "score": 0.95, "content": "Result"}]
-    
-    @pipeline_monitored(monitor=None)
-    async def full_rag_query(self, query: str) -> Dict[str, Any]:
-        """Full RAG query with comprehensive monitoring."""
-        # This would orchestrate the full RAG pipeline
-        # Each step will be monitored individually
-        embeddings = await self.generate_embeddings([query])
-        results = await self.query_vectorstore(embeddings[0])
-        response = await self.generate_response(f"Context: {results[0]['content']}\nQuery: {query}")
-        
-        return {
-            "query": query,
-            "response": response,
-            "sources": results
-        } 
+# class MonitoredRAGExample:
+#     """Example of how to apply monitoring to RAG components."""
+#     
+#     def __init__(self, config: Dict[str, Any]):
+#         self.monitor = MonitoringIntegration(config)
+#     
+#     @llm_monitored(monitor=None)
+#     async def generate_response(self, prompt: str) -> str:
+#         # Your LLM call here
+#         pass
+#     
+#     @embedding_monitored(monitor=None)
+#     async def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
+#         # Your embedding call here
+#         pass
+#     
+#     @vectorstore_monitored(monitor=None)
+#     async def query_vectorstore(self, query_embedding: List[float]) -> List[Dict[str, Any]]:
+#         # Your vector store query here
+#         pass
+#     
+#     @pipeline_monitored(monitor=None)
+#     async def full_rag_query(self, query: str) -> Dict[str, Any]:
+#         """Full RAG query with comprehensive monitoring."""
+#         # This would orchestrate the full RAG pipeline
+#         # Each step will be monitored individually
+#         embeddings = await self.generate_embeddings([query])
+#         results = await self.query_vectorstore(embeddings[0])
+#         response = await self.generate_response(f"Context: {results[0]['content']}\nQuery: {query}")
+#         
+#         return {
+#             "query": query,
+#             "response": response,
+#             "sources": results
+#         } 

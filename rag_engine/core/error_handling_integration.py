@@ -348,29 +348,22 @@ def external_api_protected(error_handler: ErrorHandlingIntegration, fallback_res
 
 
 # Example usage in RAG components
-class ProtectedRAGExample:
-    """Example of how to apply error handling to RAG components."""
-    
-    def __init__(self, config: Dict[str, Any]):
-        self.error_handler = ErrorHandlingIntegration(config)
-    
-    @llm_protected(error_handler=None, fallback_result="I'm sorry, I cannot process your request right now.")
-    async def generate_response(self, prompt: str) -> str:
-        """Generate LLM response with full error protection."""
-        # Your actual LLM call here
-        # This will be protected by circuit breaker, retry logic, and fallbacks
-        pass
-    
-    @embedding_protected(error_handler=None, fallback_result=[])
-    async def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
-        """Generate embeddings with full error protection."""
-        # Your actual embedding call here
-        # This will be protected by circuit breaker, retry logic, and fallbacks
-        pass
-    
-    @vectorstore_protected(error_handler=None, fallback_result=[])
-    async def query_vectorstore(self, query_embedding: List[float]) -> List[Dict[str, Any]]:
-        """Query vector store with full error protection."""
-        # Your actual vector store query here
-        # This will be protected by circuit breaker, retry logic, and fallbacks
-        pass 
+# class ProtectedRAGExample:
+#     """Example demonstrating the use of error handling decorators."""
+#     
+#     def __init__(self, error_handler: ErrorHandlingIntegration):
+#         self.error_handler = error_handler
+# 
+#     @llm_protected(error_handler=None, fallback_result="I'm sorry, I cannot process your request right now.")
+#     def process_query(self, query: str):
+#         """Simulates an LLM call that might fail."""
+#         if "fail" in query:
+#             raise ValueError("Simulated LLM failure")
+#         return f"Processed query: {query}"
+# 
+#     @retriable(error_handler=None, max_attempts=2)
+#     def unstable_operation(self, should_fail: bool):
+#         """Simulates an operation that might need retries."""
+#         if should_fail:
+#             raise ConnectionError("Simulated connection error")
+#         return "Operation successful" 
