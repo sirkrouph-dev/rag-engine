@@ -118,11 +118,11 @@ class SecurityIntegration:
                 # 4. Process request with circuit breaker
                 response = await self.circuit_breaker.call(call_next, request)
                 
-                                 # 5. Add security headers
-                 security_headers = self.security_manager.get_security_headers()
-                 if security_headers:
-                     for header, value in security_headers.items():
-                         response.headers[header] = value
+                # 5. Add security headers
+                security_headers = self.security_manager.get_security_headers()
+                if security_headers:
+                    for header, value in security_headers.items():
+                        response.headers[header] = value
                 
                 # 6. Log successful request
                 processing_time = time.time() - start_time

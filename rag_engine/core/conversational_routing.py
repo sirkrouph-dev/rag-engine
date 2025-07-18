@@ -16,6 +16,7 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 import json
 import logging
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +75,7 @@ class ConversationContext:
     session_id: str
     
     def add_exchange(self, user_query: str, assistant_response: str, 
-                    metadata: Dict[str, Any] = None):
+                    metadata: Optional[Dict[str, Any]] = None):
         """Add a conversation exchange."""
         self.history.append({
             "user": user_query,
