@@ -55,10 +55,10 @@ class TestErrorHandlingIntegration:
     def test_error_handling_initialization(self):
         """Test error handling integration initialization."""
         assert self.error_handler.config == self.config
-        assert self.error_handler.circuit_breaker is not None
-        assert self.error_handler.retry_handler is not None
+        assert self.error_handler.circuit_breakers is not None
+        assert self.error_handler.retry_handlers is not None
         assert self.error_handler.graceful_degradation is not None
-        assert self.error_handler.health_monitor is not None
+        assert self.error_handler.health_checker is not None
     
     def test_circuit_breaker_closed_state(self):
         """Test circuit breaker in closed state (normal operation)."""

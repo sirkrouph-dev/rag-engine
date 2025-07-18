@@ -42,18 +42,19 @@ class TestEnhancedPromptingIntegration:
         assert 'code_explanation' in prompter_components.get('prompter', [])
 
     def test_prompter_factory_fallback(self):
-        """Test that factory falls back to legacy prompter for unknown types."""
-        with patch('rag_engine.core.component_registry.get_prompter') as mock_get_prompter:
-            mock_prompter = Mock()
-            mock_get_prompter.return_value = mock_prompter
-            
-            # Test fallback for unknown type
-            factory_func = COMPONENT_REGISTRY._factories['prompter']
-            result = factory_func("unknown_type", {})
-            
-            # Should fall back to legacy prompter
-            mock_get_prompter.assert_called_once_with({})
-            assert result == mock_prompter
+        """Test that factory handles unknown types by returning DefaultPrompter."""
+        from rag_engine.core.prompting_enhanced import DefaultPrompter
+        
+        # Test handling of unknown type
+        factory_func = COMPONENT_REGISTRY._factories['prompter']
+        result = factory_func("unknown_type", {})
+        
+        # Should return DefaultPrompter for unknown types
+        assert isinstance(result, DefaultPrompter)
+        
+        # Test that known types work too
+        result_rag = factory_func("rag", {})
+        assert result_rag is not None
 
     @patch('os.path.exists')
     def test_rag_prompter_template_loading(self, mock_exists):

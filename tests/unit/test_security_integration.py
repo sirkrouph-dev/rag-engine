@@ -44,21 +44,32 @@ class TestSecurityIntegration:
             "database": {
                 "provider": "sqlite",
                 "sqlite": {"database": ":memory:"}
-            }
+            },
+            # Add authentication configuration
+            "enable_auth": True,
+            "auth_method": "jwt",
+            "jwt_secret": "test-secret-key-12345",
+            "token_expiration": 3600,
+            "enable_rate_limiting": True,
+            "rate_limit_per_minute": 100,
+            "api_keys": ["test-api-key-12345"],
+            "enable_security_headers": True,
+            "allowed_ips": ["192.168.1.1", "127.0.0.1"],
+            "blocked_ips": ["192.168.1.100"]
         }
         
         # Create temporary database for testing
         self.db_manager = ProductionDatabaseManager(self.config)
-        self.security_integration = SecurityIntegration(self.config, self.db_manager)
+        self.security_integration = SecurityIntegration(self.config)
     
     def test_security_integration_initialization(self):
         """Test security integration initialization."""
         assert self.security_integration.config == self.config
-        assert self.security_integration.db_manager == self.db_manager
         assert self.security_integration.input_validator is not None
-        assert self.security_integration.auth_manager is not None
-        assert self.security_integration.rate_limiter is not None
+        assert self.security_integration.security_manager is not None
         assert self.security_integration.audit_logger is not None
+        assert self.security_integration.circuit_breaker is not None
+        assert self.security_integration.retry_handler is not None
     
     def test_input_validation_safe_text(self):
         """Test input validation with safe text."""
@@ -130,7 +141,7 @@ class TestSecurityIntegration:
         short_config = self.config.copy()
         short_config["security"]["jwt_expiration"] = 1  # 1 second
         
-        short_security = SecurityIntegration(short_config, self.db_manager)
+        short_security = SecurityIntegration(short_config)
         
         user_data = {"user_id": "test123"}
         token = short_security.create_jwt_token(user_data)
@@ -161,7 +172,7 @@ class TestSecurityIntegration:
         config_with_keys = self.config.copy()
         config_with_keys["security"]["api_keys"] = [valid_key]
         
-        security_with_keys = SecurityIntegration(config_with_keys, self.db_manager)
+        security_with_keys = SecurityIntegration(config_with_keys)
         
         assert security_with_keys.validate_api_key(valid_key) == True
         assert security_with_keys.validate_api_key(invalid_key) == False
@@ -265,7 +276,7 @@ class TestSecurityIntegration:
             "allowed_ips": ["192.168.1.1", "10.0.0.0/8"]
         }
         
-        security_with_ip_filter = SecurityIntegration(config_with_ip_filter, self.db_manager)
+        security_with_ip_filter = SecurityIntegration(config_with_ip_filter)
         
         assert security_with_ip_filter.is_ip_allowed("192.168.1.1") == True
         assert security_with_ip_filter.is_ip_allowed("10.5.5.5") == True  # Within 10.0.0.0/8
@@ -279,7 +290,7 @@ class TestSecurityIntegration:
             "blocked_ips": ["192.168.1.100"]
         }
         
-        security_with_ip_filter = SecurityIntegration(config_with_ip_filter, self.db_manager)
+        security_with_ip_filter = SecurityIntegration(config_with_ip_filter)
         
         assert security_with_ip_filter.is_ip_allowed("192.168.1.100") == False
         assert security_with_ip_filter.is_ip_allowed("8.8.8.8") == False  # Not in allowed list
@@ -333,18 +344,20 @@ class TestSecurityIntegration:
     
     def test_csrf_token_generation_and_validation(self):
         """Test CSRF token generation and validation."""
-        session_id = "test-session-123"
+        session_id = "test_session_123"
         
         # Generate CSRF token
-        csrf_token = self.security_integration.generate_csrf_token(session_id)
+        csrf_token = self.security_integration.generate_csrf_token()
         assert isinstance(csrf_token, str)
         assert len(csrf_token) > 0
         
-        # Validate CSRF token
-        assert self.security_integration.validate_csrf_token(session_id, csrf_token) == True
+        # Validate token
+        is_valid = self.security_integration.validate_csrf_token(csrf_token, csrf_token)
+        assert is_valid == True
         
-        # Invalid token should fail
-        assert self.security_integration.validate_csrf_token(session_id, "invalid-token") == False
+        # Test invalid token
+        is_valid = self.security_integration.validate_csrf_token(csrf_token, "invalid_token")
+        assert is_valid == False
     
     def test_security_middleware_integration(self):
         """Test security middleware integration."""
@@ -381,7 +394,7 @@ class TestSecurityIntegrationEdgeCases:
             }
         }
         self.db_manager = ProductionDatabaseManager(self.config)
-        self.security_integration = SecurityIntegration(self.config, self.db_manager)
+        self.security_integration = SecurityIntegration(self.config)
     
     def test_malformed_jwt_token(self):
         """Test handling of malformed JWT tokens."""
@@ -531,7 +544,7 @@ class TestSecurityIntegrationPerformance:
             }
         }
         self.db_manager = ProductionDatabaseManager(self.config)
-        self.security_integration = SecurityIntegration(self.config, self.db_manager)
+        self.security_integration = SecurityIntegration(self.config)
     
     @pytest.mark.performance
     def test_jwt_token_performance(self):

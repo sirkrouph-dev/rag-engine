@@ -186,8 +186,8 @@ class TestConversationalRoutingEdgeCases:
                 assert isinstance(e, (MemoryError, ValueError))
         
         # Verify context is managed (if the router stores it)
-        if session_id in router.conversation_context:
-            stored_context = router.conversation_context[session_id]
+        if session_id in router.conversation_contexts:
+            stored_context = router.conversation_contexts[session_id]
             # Should respect limits or have reasonable size
             if "conversation_history" in stored_context:
                 history_length = len(stored_context["conversation_history"])
@@ -213,12 +213,12 @@ class TestConversationalRoutingEdgeCases:
             ]
             
             try:
-                decision = router.route_query("ambiguous query", {})
+                decision = router.route_query("ambiguous query", "test_session")
                 # Should handle low confidence appropriately
                 if decision:
                     # Confidence should be normalized or handled
-                    assert decision.confidence >= 0.0
-                    assert decision.confidence <= 1.0
+                    assert decision["confidence"] >= 0.0
+                    assert decision["confidence"] <= 1.0
             except Exception as e:
                 # Should handle invalid confidence gracefully
                 assert isinstance(e, (ValueError, TypeError))
