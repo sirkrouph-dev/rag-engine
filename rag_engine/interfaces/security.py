@@ -55,7 +55,8 @@ class SecurityConfig:
                 "X-Content-Type-Options": "nosniff",
                 "X-Frame-Options": "DENY",
                 "X-XSS-Protection": "1; mode=block",
-                "Strict-Transport-Security": "max-age=31536000; includeSubDomains"
+                "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+                "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
             }
 
 
@@ -214,7 +215,34 @@ class SecurityManager:
         if self.config.blocked_ips and ip in self.config.blocked_ips:
             return False
         
-        if self.config.allowed_ips and ip not in self.config.allowed_ips:
+        if self.config.allowed_ips:
+            # Check exact matches first
+            if ip in self.config.allowed_ips:
+                return True
+            
+            # Check CIDR notation matches
+            import ipaddress
+            try:
+                ip_obj = ipaddress.ip_address(ip)
+                for allowed_ip in self.config.allowed_ips:
+                    try:
+                        if '/' in allowed_ip:
+                            # CIDR notation
+                            network = ipaddress.ip_network(allowed_ip, strict=False)
+                            if ip_obj in network:
+                                return True
+                        else:
+                            # Single IP
+                            if ip == allowed_ip:
+                                return True
+                    except ValueError:
+                        # Invalid IP format, skip
+                        continue
+            except ValueError:
+                # Invalid IP format
+                return False
+            
+            # If we have allowed_ips but IP doesn't match any, deny
             return False
         
         return True

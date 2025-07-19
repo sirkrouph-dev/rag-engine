@@ -30,7 +30,9 @@ class SecurityIntegration:
             jwt_secret=config.get("jwt_secret", ""),
             enable_rate_limiting=config.get("enable_rate_limiting", True),
             rate_limit_per_minute=config.get("rate_limit_per_minute", 60),
-            cors_origins=config.get("cors_origins", ["*"])
+            cors_origins=config.get("cors_origins", ["*"]),
+            allowed_ips=config.get("allowed_ips", []),
+            blocked_ips=config.get("blocked_ips", [])
         )
         
         self.security_manager = SecurityManager(self.security_config)
@@ -58,6 +60,9 @@ class SecurityIntegration:
             backoff_factor=config.get("retry_backoff", 2.0)
         )
         self.retry_handler = RetryHandler(retry_config)
+        
+        # Simple session storage for testing
+        self._sessions = {}
     
     def create_fastapi_middleware(self) -> Callable:
         """Create FastAPI middleware with comprehensive security."""
@@ -324,18 +329,21 @@ class SecurityIntegration:
         import secrets
         session_id = secrets.token_urlsafe(32)
         # Store session data (in production, use database)
+        self._sessions[session_id] = session_data
         return session_id
     
     def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Get session data."""
         # Simple session retrieval - in production, use proper session management
-        # For now, return None as we don't have persistent session storage
-        return None
+        return self._sessions.get(session_id)
     
     def invalidate_session(self, session_id: str) -> bool:
         """Invalidate session."""
         # Simple session invalidation - in production, use proper session management
-        return True
+        if session_id in self._sessions:
+            del self._sessions[session_id]
+            return True
+        return False
     
     def generate_csrf_token(self) -> str:
         """Generate CSRF token."""
@@ -362,6 +370,20 @@ class SecurityIntegration:
     
     def sanitize_html(self, html_input: str) -> str:
         """Sanitize HTML input."""
+        # First check for XSS patterns
+        if self.input_validator.check_xss(html_input):
+            # If XSS detected, strip all HTML and escape
+            import html
+            import re
+            # Remove script tags and their content
+            cleaned = re.sub(r'<script[^>]*>.*?</script>', '', html_input, flags=re.IGNORECASE | re.DOTALL)
+            # Remove other dangerous patterns
+            cleaned = re.sub(r'javascript:', '', cleaned, flags=re.IGNORECASE)
+            cleaned = re.sub(r'on\w+\s*=', '', cleaned, flags=re.IGNORECASE)
+            # Escape remaining HTML
+            return html.escape(cleaned)
+        
+        # Otherwise use the standard sanitization
         return self.input_validator.sanitize_html(html_input)
     
     def get_fastapi_middleware(self):
