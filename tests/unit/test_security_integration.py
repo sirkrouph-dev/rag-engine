@@ -27,7 +27,7 @@ class TestSecurityIntegration:
         self.config = {
             "jwt_secret": "test-secret-key-12345",
             "jwt_algorithm": "HS256",
-            "jwt_expiry": 3600,
+            "token_expiration": 3600,
             "enable_auth": True,
             "auth_method": "jwt",
             "enable_rate_limiting": True,
@@ -359,9 +359,9 @@ class TestSecurityIntegrationEdgeCases:
     def setup_method(self):
         """Setup test fixtures."""
         self.config = {
-            "jwt_secret_key": "test-secret-key-12345",
+            "jwt_secret": "test-secret-key-12345",
             "jwt_algorithm": "HS256",
-            "jwt_expiration": 3600,
+            "token_expiration": 3600,
             "enable_auth": True,
             "auth_method": "jwt",
             "rate_limiting": {
@@ -521,7 +521,7 @@ class TestSecurityIntegrationPerformance:
         self.config = {
             "jwt_secret": "test-secret-key-12345",
             "jwt_algorithm": "HS256",
-            "jwt_expiry": 3600,
+            "token_expiration": 3600,
             "enable_auth": True,
             "auth_method": "jwt",
             "enable_rate_limiting": True,

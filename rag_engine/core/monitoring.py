@@ -6,7 +6,7 @@ import logging
 import time
 import psutil
 import asyncio
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Callable
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 from collections import defaultdict, deque
@@ -14,11 +14,11 @@ import threading
 import json
 
 try:
-    from prometheus_client import Counter, Histogram, Gauge, Info, generate_latest
+    from prometheus_client import Counter, Histogram, Gauge, Info, generate_latest, CollectorRegistry
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False
-    Counter = Histogram = Gauge = Info = generate_latest = None
+    Counter = Histogram = Gauge = Info = generate_latest = CollectorRegistry = None
 
 logger = logging.getLogger(__name__)
 
@@ -64,41 +64,51 @@ class MetricsCollector:
     
     def _init_prometheus_metrics(self):
         """Initialize Prometheus metrics."""
+        # Use a custom registry to avoid conflicts
+        self.registry = CollectorRegistry()
+        
         self.prom_request_duration = Histogram(
             'http_request_duration_seconds',
             'HTTP request duration in seconds',
-            ['method', 'endpoint', 'status']
+            ['method', 'endpoint', 'status'],
+            registry=self.registry
         )
         
         self.prom_request_total = Counter(
             'http_requests_total',
             'Total HTTP requests',
-            ['method', 'endpoint', 'status']
+            ['method', 'endpoint', 'status'],
+            registry=self.registry
         )
         
         self.prom_active_requests = Gauge(
             'http_requests_active',
-            'Number of active HTTP requests'
+            'Number of active HTTP requests',
+            registry=self.registry
         )
         
         self.prom_system_cpu = Gauge(
             'system_cpu_percent',
-            'System CPU usage percentage'
+            'System CPU usage percentage',
+            registry=self.registry
         )
         
         self.prom_system_memory = Gauge(
             'system_memory_percent',
-            'System memory usage percentage'
+            'System memory usage percentage',
+            registry=self.registry
         )
         
         self.prom_cache_hits = Counter(
             'cache_hits_total',
-            'Total cache hits'
+            'Total cache hits',
+            registry=self.registry
         )
         
         self.prom_cache_misses = Counter(
             'cache_misses_total',
-            'Total cache misses'
+            'Total cache misses',
+            registry=self.registry
         )
     
     def record_request(self, method: str, endpoint: str, status_code: int, duration: float):
@@ -241,7 +251,16 @@ class MetricsCollector:
         if not PROMETHEUS_AVAILABLE:
             return "Prometheus not available"
         
-        return generate_latest().decode('utf-8')
+        return generate_latest(self.registry).decode('utf-8')
+    
+    def reset_metrics(self):
+        """Reset all metrics."""
+        with self.lock:
+            self.request_durations.clear()
+            self.error_counts.clear()
+            self.request_counts.clear()
+            self.cache_stats = {"hits": 0, "misses": 0}
+            self.active_requests = 0
 
 
 class HealthMonitor:
@@ -251,9 +270,14 @@ class HealthMonitor:
         self.config = config
         self.metrics_collector = MetricsCollector()
         self.component_health = {}
+        self.registered_components = {}
         self.alert_thresholds = config.get("alerting", {}).get("thresholds", {})
         self.last_alert_time = {}
         self.alert_cooldown = 300  # 5 minutes
+    
+    def register_component(self, component_name: str, health_check_func: Callable):
+        """Register a health check function for a component."""
+        self.registered_components[component_name] = health_check_func
     
     async def check_database_health(self) -> Dict[str, Any]:
         """Check database connectivity and performance."""

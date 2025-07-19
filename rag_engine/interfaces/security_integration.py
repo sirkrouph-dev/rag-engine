@@ -40,7 +40,7 @@ class SecurityIntegration:
         self.audit_logger = AuditLogger()
         
         # Initialize authentication manager
-        if self.security_config.enable_auth and self.security_config.jwt_secret:
+        if self.security_config.enable_auth and self.security_config.jwt_secret and self.security_config.jwt_secret.strip():
             self.auth_manager = AuthenticationManager(
                 secret_key=self.security_config.jwt_secret,
                 token_expiration=config.get("token_expiration", 3600)

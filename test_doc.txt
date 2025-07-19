@@ -1,0 +1,7 @@
+This is a test document for the RAG engine pipeline.
+
+It contains some sample text that can be used for testing the document loading, chunking, and embedding functionality.
+
+The document includes multiple sentences to test the chunking algorithm and ensure that the pipeline can process text documents correctly.
+
+This document will be used by the integration tests to verify that the API endpoints work correctly with a real pipeline. 

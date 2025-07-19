@@ -35,8 +35,8 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
         self.orchestrator_type = orchestrator_type
         self.app = None
         self.rate_limiters = {}
-        self.metrics = MetricsCollector() if api_config and api_config.enable_metrics else None
-        self.health_checker = HealthChecker() if api_config and api_config.enable_health_checks else None
+        self.metrics = MetricsCollector() if api_config and api_config.monitoring.enable_metrics else None
+        self.health_checker = HealthChecker() if api_config and api_config.monitoring.enable_health_checks else None
         
         # Initialize comprehensive security components
         self.security_manager = None
@@ -82,24 +82,28 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
     def _setup_security_components(self):
         """Initialize comprehensive security components."""
         # Create security configuration
+        auth_method = self.api_config.security.auth_method.value
+        if auth_method == "none":
+            auth_method = "api_key"  # Use api_key as fallback for none
+        
         security_config = SecurityConfig(
-            enable_auth=self.api_config.auth_method != AuthMethod.NONE,
-            auth_method=self.api_config.auth_method.value if self.api_config.auth_method != AuthMethod.NONE else "none",
-            api_keys=self.api_config.api_keys,
-            jwt_secret=self.api_config.jwt_secret,
-            enable_rate_limiting=self.api_config.enable_rate_limiting,
-            rate_limit_per_minute=self.api_config.requests_per_minute,
-            cors_origins=self.api_config.cors_origins
+            enable_auth=self.api_config.security.enable_auth,
+            auth_method=auth_method,
+            api_keys=self.api_config.security.api_keys,
+            jwt_secret=self.api_config.security.jwt_secret,
+            enable_rate_limiting=self.api_config.security.enable_rate_limiting,
+            rate_limit_per_minute=self.api_config.security.rate_limit_per_minute,
+            cors_origins=self.api_config.cors.origins
         )
         
         # Initialize security manager
         self.security_manager = SecurityManager(security_config)
         
         # Initialize authentication manager if JWT is enabled
-        if self.api_config.auth_method == AuthMethod.JWT and self.api_config.jwt_secret:
+        if self.api_config.security.auth_method == AuthMethod.JWT and self.api_config.security.jwt_secret:
             self.auth_manager = AuthenticationManager(
-                secret_key=self.api_config.jwt_secret,
-                token_expiration=3600
+                secret_key=self.api_config.security.jwt_secret,
+                token_expiration=self.api_config.security.jwt_expiry_seconds
             )
     
     def _setup_middleware(self):
@@ -108,21 +112,21 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
             return
             
         # CORS
-        if self.api_config.cors_origins:
+        if self.api_config.cors.enabled and self.api_config.cors.origins:
             self.app.add_middleware(
                 CORSMiddleware,
-                allow_origins=self.api_config.cors_origins,
-                allow_credentials=True,
-                allow_methods=["*"],
-                allow_headers=["*"],
+                allow_origins=self.api_config.cors.origins,
+                allow_credentials=self.api_config.cors.credentials,
+                allow_methods=self.api_config.cors.methods,
+                allow_headers=self.api_config.cors.headers,
             )
         
-        # Compression
-        if self.api_config.enable_compression:
-            self.app.add_middleware(GZipMiddleware, minimum_size=1000)
+        # Compression (disabled for now - not in config)
+        # if self.api_config.enable_compression:
+        #     self.app.add_middleware(GZipMiddleware, minimum_size=1000)
         
         # Request logging
-        if self.api_config.enable_request_logging:
+        if hasattr(self.api_config, 'logging') and self.api_config.logging.enable_request_logging:
             @self.app.middleware("http")
             async def log_requests(request: Request, call_next):
                 start_time = time.time()
@@ -151,17 +155,17 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
                 
                 return response
         
-        # Custom headers
-        if self.api_config.custom_headers:
-            @self.app.middleware("http")
-            async def add_custom_headers(request: Request, call_next):
-                response = await call_next(request)
-                for header, value in self.api_config.custom_headers.items():
-                    response.headers[header] = value
-                return response
+        # Custom headers (disabled for now - not in config)
+        # if self.api_config.custom_headers:
+        #     @self.app.middleware("http")
+        #     async def add_custom_headers(request: Request, call_next):
+        #         response = await call_next(request)
+        #         for header, value in self.api_config.custom_headers.items():
+        #             response.headers[header] = value
+        #         return response
         
         # Response caching
-        if self.api_config.enable_response_caching:
+        if hasattr(self.api_config, 'caching') and self.api_config.caching.enabled:
             self._setup_caching_middleware()
     
     def _setup_caching_middleware(self):
@@ -180,7 +184,8 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
             # Check cache
             if cache_key in cache:
                 cache_time = cache_times.get(cache_key, 0)
-                if time.time() - cache_time < self.api_config.cache_ttl:
+                cache_ttl = getattr(self.api_config.caching, 'ttl_seconds', 300)
+                if time.time() - cache_time < cache_ttl:
                     cached_response = cache[cache_key]
                     return JSONResponse(
                         content=cached_response["content"],
@@ -219,21 +224,21 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
     
     def _setup_authentication(self):
         """Setup authentication based on configuration."""
-        if self.api_config.auth_method == AuthMethod.NONE:
+        if self.api_config.security.auth_method == AuthMethod.NONE:
             return
         
-        if self.api_config.auth_method == AuthMethod.API_KEY:
+        if self.api_config.security.auth_method == AuthMethod.API_KEY:
             api_key_header = APIKeyHeader(name="X-API-Key")
             
             async def verify_api_key(api_key: str = Depends(api_key_header)):
-                if api_key not in self.api_config.api_keys:
+                if api_key not in self.api_config.security.api_keys:
                     raise HTTPException(status_code=401, detail="Invalid API key")
                 return api_key
             
             # Apply to all protected routes
             self.auth_dependency = verify_api_key
         
-        elif self.api_config.auth_method == AuthMethod.JWT:
+        elif self.api_config.security.auth_method == AuthMethod.JWT:
             bearer_scheme = HTTPBearer()
             
             async def verify_jwt(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
@@ -241,8 +246,8 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
                     import jwt
                     payload = jwt.decode(
                         credentials.credentials,
-                        self.api_config.jwt_secret,
-                        algorithms=["HS256"]
+                        self.api_config.security.jwt_secret,
+                        algorithms=[self.api_config.security.jwt_algorithm]
                     )
                     return payload
                 except jwt.InvalidTokenError:
@@ -252,7 +257,7 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
     
     def _setup_rate_limiting(self):
         """Setup rate limiting based on configuration."""
-        if not self.api_config.enable_rate_limiting:
+        if not self.api_config.security.enable_rate_limiting:
             return
         
         # In-memory rate limiter (for production, use Redis)
@@ -260,13 +265,8 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
         
         @self.app.middleware("http")
         async def rate_limit_middleware(request: Request, call_next):
-            # Determine rate limit key
-            if self.api_config.rate_limit_type == RateLimitType.PER_IP:
-                key = request.client.host
-            elif self.api_config.rate_limit_type == RateLimitType.PER_ENDPOINT:
-                key = f"{request.client.host}:{request.url.path}"
-            else:
-                key = "global"
+            # Determine rate limit key (simplified - per IP)
+            key = request.client.host
             
             # Clean old requests
             now = time.time()
@@ -276,7 +276,7 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
                 request_counts[key].popleft()
             
             # Check rate limit
-            if len(request_counts[key]) >= self.api_config.requests_per_minute:
+            if len(request_counts[key]) >= self.api_config.security.rate_limit_per_minute:
                 return JSONResponse(
                     status_code=429,
                     content={"detail": "Rate limit exceeded"}
@@ -286,9 +286,9 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
             request_counts[key].append(now)
             
             response = await call_next(request)
-            response.headers["X-RateLimit-Limit"] = str(self.api_config.requests_per_minute)
+            response.headers["X-RateLimit-Limit"] = str(self.api_config.security.rate_limit_per_minute)
             response.headers["X-RateLimit-Remaining"] = str(
-                self.api_config.requests_per_minute - len(request_counts[key])
+                self.api_config.security.rate_limit_per_minute - len(request_counts[key])
             )
             
             return response
@@ -314,14 +314,16 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
                 "message": "An unexpected error occurred"
             }
             
-            if self.api_config.include_error_details:
+            # Include error details if in debug mode
+            if hasattr(self.api_config, 'debug') and self.api_config.debug:
                 content["details"] = str(exc)
             
             return JSONResponse(status_code=500, content=content)
         
-        # Apply custom error handlers
-        for status_code, handler in self.api_config.custom_error_handlers.items():
-            self.app.exception_handler(status_code)(handler)
+        # Apply custom error handlers (disabled for now - not in config)
+        # if hasattr(self.api_config, 'custom_error_handlers'):
+        #     for status_code, handler in self.api_config.custom_error_handlers.items():
+        #         self.app.exception_handler(status_code)(handler)
     
     def _setup_core_routes(self):
         """Setup core RAG Engine API routes."""
@@ -338,7 +340,7 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
                 raise HTTPException(status_code=400, detail="Pipeline not built. Call /build first.")
             
             try:
-                result = self.pipeline.query(request.query)
+                result = self.pipeline.chat(request.query)
                 return ChatResponse(
                     query=request.query,
                     response=result,
@@ -354,9 +356,22 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
             """Build the RAG pipeline."""
             try:
                 from ..core.pipeline import Pipeline
+                from ..config.schema import RAGConfig, DocumentConfig, ChunkingConfig, EmbeddingConfig, VectorStoreConfig, RetrievalConfig, PromptingConfig, LLMConfig, OutputConfig
                 
                 def build_pipeline():
-                    self.pipeline = Pipeline(config=self.config)
+                    # Convert dictionary config to RAGConfig object
+                    rag_config = RAGConfig(
+                        documents=[DocumentConfig(**doc) for doc in self.config.get("documents", [])],
+                        chunking=ChunkingConfig(**self.config.get("chunking", {"method": "recursive", "max_tokens": 512, "overlap": 50})),
+                        embedding=EmbeddingConfig(**self.config.get("embedding", {"provider": "sentence-transformers", "model": "all-MiniLM-L6-v2", "api_key": None})),
+                        vectorstore=VectorStoreConfig(**self.config.get("vectorstore", {"provider": "faiss", "persist_directory": "./vectorstore"})),
+                        retrieval=RetrievalConfig(**self.config.get("retrieval", {"top_k": 5})),
+                        prompting=PromptingConfig(**self.config.get("prompting", {"system_prompt": "You are a helpful assistant."})),
+                        llm=LLMConfig(**self.config.get("llm", {"provider": "mock", "model": "mock-model", "temperature": 0.7})),
+                        output=OutputConfig(**self.config.get("output", {"method": "text"}))
+                    )
+                    
+                    self.pipeline = Pipeline(config=rag_config)
                     self.pipeline.build()
                 
                 background_tasks.add_task(build_pipeline)
@@ -1065,13 +1080,13 @@ Keep responses concise and actionable. Focus on practical solutions."""
 
     def _setup_monitoring(self):
         """Setup monitoring endpoints."""
-        if self.api_config.enable_metrics and self.metrics:
-            @self.app.get(self.api_config.metrics_endpoint)
+        if self.api_config.monitoring.enable_metrics and self.metrics:
+            @self.app.get(self.api_config.monitoring.metrics_endpoint)
             async def metrics_endpoint():
                 """Get system metrics."""
                 return self.metrics.get_metrics()
         
-        if self.api_config.enable_health_checks:
+        if hasattr(self.api_config, 'monitoring') and self.api_config.monitoring.enable_health_checks:
             @self.app.get("/health")
             async def health_endpoint():
                 """Health check endpoint."""

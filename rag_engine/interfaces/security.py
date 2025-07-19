@@ -193,6 +193,8 @@ class SecurityManager:
                 self.config.jwt_algorithm,
                 self.config.jwt_expiry
             )
+        elif self.config.auth_method in ["none", "NONE"]:
+            return None
         else:
             raise ValueError(f"Unsupported auth method: {self.config.auth_method}")
     

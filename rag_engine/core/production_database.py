@@ -508,6 +508,18 @@ class ProductionDatabaseManager:
         await self.provider.connect()
         logger.info("Production database initialized successfully")
     
+    def initialize_database(self):
+        """Initialize database synchronously for testing compatibility."""
+        # Create event loop if not exists
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
+        # Run initialization
+        loop.run_until_complete(self.initialize())
+    
     async def shutdown(self):
         """Shutdown the database connection."""
         await self.provider.disconnect()

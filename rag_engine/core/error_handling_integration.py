@@ -320,6 +320,80 @@ class ErrorHandlingIntegration:
             "fallback_activations": 0,
             "last_error_time": None
         }
+    
+    def protect_with_circuit_breaker(self, func: Callable, service_name: str):
+        """Protect a function with circuit breaker pattern."""
+        circuit_breaker = self.circuit_breakers.get(service_name)
+        if not circuit_breaker:
+            # Create default circuit breaker
+            config = CircuitBreakerConfig(
+                failure_threshold=3,
+                recovery_timeout=30,
+                expected_exceptions=[Exception]
+            )
+            circuit_breaker = CircuitBreaker(config)
+            self.circuit_breakers[service_name] = circuit_breaker
+        
+        @wraps(func)
+        def protected_func(*args, **kwargs):
+            return circuit_breaker.call(func, *args, **kwargs)
+        
+        return protected_func
+    
+    def apply_retry_logic(self, func: Callable, operation_name: str):
+        """Apply retry logic to a function."""
+        retry_handler = self.retry_handlers.get(operation_name)
+        if not retry_handler:
+            # Create default retry handler
+            config = RetryConfig(
+                max_attempts=3,
+                backoff_factor=2.0,
+                max_delay=60.0
+            )
+            retry_handler = RetryHandler(config)
+            self.retry_handlers[operation_name] = retry_handler
+        
+        return retry_handler(func)
+    
+    def apply_graceful_degradation(self, func: Callable, service_type: str):
+        """Apply graceful degradation to a function."""
+        @wraps(func)
+        def degraded_func(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                logger.warning(f"Graceful degradation activated for {service_type}: {e}")
+                return self._handle_graceful_degradation_sync(service_type, None, e, *args, **kwargs)
+        
+        return degraded_func
+    
+    def register_health_check(self, component_name: str, health_check_func: Callable):
+        """Register a health check function for a component."""
+        self.health_checker.register_component(component_name, health_check_func)
+    
+    def with_circuit_breaker(self, service_name: str):
+        """Decorator for circuit breaker protection."""
+        def decorator(func: Callable):
+            return self.protect_with_circuit_breaker(func, service_name)
+        return decorator
+    
+    def protect_async_with_circuit_breaker(self, func: Callable, service_name: str):
+        """Protect an async function with circuit breaker pattern."""
+        circuit_breaker = self.circuit_breakers.get(service_name)
+        if not circuit_breaker:
+            config = CircuitBreakerConfig(
+                failure_threshold=3,
+                recovery_timeout=30,
+                expected_exceptions=[Exception]
+            )
+            circuit_breaker = CircuitBreaker(config)
+            self.circuit_breakers[service_name] = circuit_breaker
+        
+        @wraps(func)
+        async def protected_func(*args, **kwargs):
+            return await circuit_breaker.call(func, *args, **kwargs)
+        
+        return protected_func
 
 
 # Convenience decorators for common operations
