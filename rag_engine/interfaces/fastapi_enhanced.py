@@ -35,8 +35,8 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
         self.orchestrator_type = orchestrator_type
         self.app = None
         self.rate_limiters = {}
-        self.metrics = MetricsCollector() if api_config and api_config.monitoring.enable_metrics else None
-        self.health_checker = HealthChecker() if api_config and api_config.monitoring.enable_health_checks else None
+        self.metrics = MetricsCollector() if api_config and hasattr(api_config, 'monitoring') and api_config.monitoring.enable_metrics else None
+        self.health_checker = HealthChecker() if api_config and hasattr(api_config, 'monitoring') and api_config.monitoring.enable_health_checks else None
         
         # Initialize comprehensive security components
         self.security_manager = None
@@ -81,29 +81,60 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
     
     def _setup_security_components(self):
         """Initialize comprehensive security components."""
-        # Create security configuration
-        auth_method = self.api_config.security.auth_method.value
-        if auth_method == "none":
-            auth_method = "api_key"  # Use api_key as fallback for none
+        # Create security configuration with fallbacks for flat config
+        auth_method = "api_key"  # Default fallback
+        enable_auth = False
+        api_keys = []
+        jwt_secret = ""
+        enable_rate_limiting = False
+        rate_limit_per_minute = 60
+        cors_origins = ["*"]
+        
+        # Handle nested config structure
+        if hasattr(self.api_config, 'security'):
+            auth_method = self.api_config.security.auth_method.value if hasattr(self.api_config.security, 'auth_method') else "api_key"
+            if auth_method == "none":
+                auth_method = "api_key"  # Use api_key as fallback for none
+            enable_auth = getattr(self.api_config.security, 'enable_auth', False)
+            api_keys = getattr(self.api_config.security, 'api_keys', [])
+            jwt_secret = getattr(self.api_config.security, 'jwt_secret', "")
+            enable_rate_limiting = getattr(self.api_config.security, 'enable_rate_limiting', False)
+            rate_limit_per_minute = getattr(self.api_config.security, 'rate_limit_per_minute', 60)
+        else:
+            # Handle flat config structure
+            auth_method = getattr(self.api_config, 'auth_method', AuthMethod.NONE).value if hasattr(self.api_config, 'auth_method') else "api_key"
+            if auth_method == "none":
+                auth_method = "api_key"
+            enable_auth = getattr(self.api_config, 'enable_auth', False)
+            api_keys = getattr(self.api_config, 'api_keys', [])
+            jwt_secret = getattr(self.api_config, 'jwt_secret', "")
+            enable_rate_limiting = getattr(self.api_config, 'enable_rate_limiting', False)
+            rate_limit_per_minute = getattr(self.api_config, 'rate_limit_per_minute', 60)
+        
+        # Handle CORS configuration
+        if hasattr(self.api_config, 'cors') and hasattr(self.api_config.cors, 'origins'):
+            cors_origins = self.api_config.cors.origins
+        else:
+            cors_origins = getattr(self.api_config, 'cors_origins', ["*"])
         
         security_config = SecurityConfig(
-            enable_auth=self.api_config.security.enable_auth,
+            enable_auth=enable_auth,
             auth_method=auth_method,
-            api_keys=self.api_config.security.api_keys,
-            jwt_secret=self.api_config.security.jwt_secret,
-            enable_rate_limiting=self.api_config.security.enable_rate_limiting,
-            rate_limit_per_minute=self.api_config.security.rate_limit_per_minute,
-            cors_origins=self.api_config.cors.origins
+            api_keys=api_keys,
+            jwt_secret=jwt_secret,
+            enable_rate_limiting=enable_rate_limiting,
+            rate_limit_per_minute=rate_limit_per_minute,
+            cors_origins=cors_origins
         )
         
         # Initialize security manager
         self.security_manager = SecurityManager(security_config)
         
         # Initialize authentication manager if JWT is enabled
-        if self.api_config.security.auth_method == AuthMethod.JWT and self.api_config.security.jwt_secret:
+        if auth_method == "jwt" and jwt_secret:
             self.auth_manager = AuthenticationManager(
-                secret_key=self.api_config.security.jwt_secret,
-                token_expiration=self.api_config.security.jwt_expiry_seconds
+                secret_key=jwt_secret,
+                token_expiration=getattr(self.api_config, 'jwt_expiry_seconds', 3600)
             )
     
     def _setup_middleware(self):
@@ -111,14 +142,34 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
         if not self.app:
             return
             
-        # CORS
-        if self.api_config.cors.enabled and self.api_config.cors.origins:
+        # CORS - handle both nested and flat config
+        cors_enabled = False
+        cors_origins = ["*"]
+        cors_credentials = True
+        cors_methods = ["*"]
+        cors_headers = ["*"]
+        
+        if hasattr(self.api_config, 'cors'):
+            cors_enabled = getattr(self.api_config.cors, 'enabled', False)
+            cors_origins = getattr(self.api_config.cors, 'origins', ["*"])
+            cors_credentials = getattr(self.api_config.cors, 'credentials', True)
+            cors_methods = getattr(self.api_config.cors, 'methods', ["*"])
+            cors_headers = getattr(self.api_config.cors, 'headers', ["*"])
+        else:
+            # Flat config fallback
+            cors_enabled = getattr(self.api_config, 'cors_enabled', False)
+            cors_origins = getattr(self.api_config, 'cors_origins', ["*"])
+            cors_credentials = getattr(self.api_config, 'cors_credentials', True)
+            cors_methods = getattr(self.api_config, 'cors_methods', ["*"])
+            cors_headers = getattr(self.api_config, 'cors_headers', ["*"])
+        
+        if cors_enabled and cors_origins:
             self.app.add_middleware(
                 CORSMiddleware,
-                allow_origins=self.api_config.cors.origins,
-                allow_credentials=self.api_config.cors.credentials,
-                allow_methods=self.api_config.cors.methods,
-                allow_headers=self.api_config.cors.headers,
+                allow_origins=cors_origins,
+                allow_credentials=cors_credentials,
+                allow_methods=cors_methods,
+                allow_headers=cors_headers,
             )
         
         # Compression (disabled for now - not in config)
@@ -224,21 +275,37 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
     
     def _setup_authentication(self):
         """Setup authentication based on configuration."""
-        if self.api_config.security.auth_method == AuthMethod.NONE:
+        # Get auth method with fallbacks
+        auth_method = "none"
+        if hasattr(self.api_config, 'security'):
+            auth_method = getattr(self.api_config.security, 'auth_method', AuthMethod.NONE).value
+        else:
+            auth_method = getattr(self.api_config, 'auth_method', AuthMethod.NONE).value
+        
+        if auth_method == AuthMethod.NONE:
             return
         
-        if self.api_config.security.auth_method == AuthMethod.API_KEY:
+        if auth_method == AuthMethod.API_KEY:
             api_key_header = APIKeyHeader(name="X-API-Key")
             
             async def verify_api_key(api_key: str = Depends(api_key_header)):
-                if api_key not in self.api_config.security.api_keys:
-                    raise HTTPException(status_code=401, detail="Invalid API key")
+                # Get API keys with fallbacks
+                api_keys = []
+                if hasattr(self.api_config, 'security'):
+                    api_keys = getattr(self.api_config.security, 'api_keys', [])
+                else:
+                    api_keys = getattr(self.api_config, 'api_keys', [])
+                
+                if api_key not in api_keys:
+                    raise HTTPException(
+                        status_code=401,
+                        detail="Invalid API key"
+                    )
                 return api_key
             
-            # Apply to all protected routes
-            self.auth_dependency = verify_api_key
+            self.app.dependency_overrides[verify_api_key] = verify_api_key
         
-        elif self.api_config.security.auth_method == AuthMethod.JWT:
+        elif auth_method == AuthMethod.JWT:
             bearer_scheme = HTTPBearer()
             
             async def verify_jwt(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
@@ -256,39 +323,55 @@ class FastAPIEnhanced(EnhancedBaseAPIServer):
             self.auth_dependency = verify_jwt
     
     def _setup_rate_limiting(self):
-        """Setup rate limiting based on configuration."""
-        if not self.api_config.security.enable_rate_limiting:
-            return
+        """Setup rate limiting middleware."""
+        # Get rate limiting config with fallbacks
+        enable_rate_limiting = False
+        rate_limit_per_minute = 60
         
-        # In-memory rate limiter (for production, use Redis)
-        request_counts = defaultdict(lambda: deque())
+        if hasattr(self.api_config, 'security'):
+            enable_rate_limiting = getattr(self.api_config.security, 'enable_rate_limiting', False)
+            rate_limit_per_minute = getattr(self.api_config.security, 'rate_limit_per_minute', 60)
+        else:
+            enable_rate_limiting = getattr(self.api_config, 'enable_rate_limiting', False)
+            rate_limit_per_minute = getattr(self.api_config, 'rate_limit_per_minute', 60)
+        
+        if not enable_rate_limiting:
+            return
         
         @self.app.middleware("http")
         async def rate_limit_middleware(request: Request, call_next):
             # Determine rate limit key (simplified - per IP)
-            key = request.client.host
+            key = request.client.host if request.client else "unknown"
             
-            # Clean old requests
-            now = time.time()
-            window_start = now - 60  # 1 minute window
+            # Initialize rate limiter for this key
+            if key not in self.rate_limiters:
+                self.rate_limiters[key] = []
             
-            while request_counts[key] and request_counts[key][0] < window_start:
-                request_counts[key].popleft()
+            current_time = time.time()
             
-            # Check rate limit
-            if len(request_counts[key]) >= self.api_config.security.rate_limit_per_minute:
-                return JSONResponse(
+            # Clean old requests (older than 1 minute)
+            self.rate_limiters[key] = [
+                req_time for req_time in self.rate_limiters[key]
+                if current_time - req_time < 60
+            ]
+            
+            # Check if rate limit exceeded
+            if len(self.rate_limiters[key]) >= rate_limit_per_minute:
+                raise HTTPException(
                     status_code=429,
-                    content={"detail": "Rate limit exceeded"}
+                    detail="Rate limit exceeded"
                 )
             
-            # Record request
-            request_counts[key].append(now)
+            # Add current request
+            self.rate_limiters[key].append(current_time)
             
+            # Process request
             response = await call_next(request)
-            response.headers["X-RateLimit-Limit"] = str(self.api_config.security.rate_limit_per_minute)
+            
+            # Add rate limit headers
+            response.headers["X-RateLimit-Limit"] = str(rate_limit_per_minute)
             response.headers["X-RateLimit-Remaining"] = str(
-                self.api_config.security.rate_limit_per_minute - len(request_counts[key])
+                rate_limit_per_minute - len(self.rate_limiters[key])
             )
             
             return response
@@ -1080,13 +1163,27 @@ Keep responses concise and actionable. Focus on practical solutions."""
 
     def _setup_monitoring(self):
         """Setup monitoring endpoints."""
-        if self.api_config.monitoring.enable_metrics and self.metrics:
-            @self.app.get(self.api_config.monitoring.metrics_endpoint)
+        # Get monitoring config with fallbacks
+        enable_metrics = False
+        enable_health_checks = False
+        metrics_endpoint = "/metrics"
+        
+        if hasattr(self.api_config, 'monitoring'):
+            enable_metrics = getattr(self.api_config.monitoring, 'enable_metrics', False)
+            enable_health_checks = getattr(self.api_config.monitoring, 'enable_health_checks', False)
+            metrics_endpoint = getattr(self.api_config.monitoring, 'metrics_endpoint', "/metrics")
+        else:
+            enable_metrics = getattr(self.api_config, 'enable_metrics', False)
+            enable_health_checks = getattr(self.api_config, 'enable_health_checks', False)
+            metrics_endpoint = getattr(self.api_config, 'metrics_endpoint', "/metrics")
+        
+        if enable_metrics and self.metrics:
+            @self.app.get(metrics_endpoint)
             async def metrics_endpoint():
-                """Get system metrics."""
+                """Prometheus metrics endpoint."""
                 return self.metrics.get_metrics()
         
-        if hasattr(self.api_config, 'monitoring') and self.api_config.monitoring.enable_health_checks:
+        if enable_health_checks:
             @self.app.get("/health")
             async def health_endpoint():
                 """Health check endpoint."""

@@ -8,7 +8,11 @@ from rag_engine.core.pipeline import Pipeline
 from rag_engine.config.loader import load_config
 
 
-app = typer.Typer(help="RAG Engine CLI - Modular Retrieval-Augmented Generation Framework")
+app = typer.Typer(
+    help="RAG Engine CLI - Modular Retrieval-Augmented Generation Framework",
+    no_args_is_help=True,
+    rich_markup_mode=None  # Disable rich formatting to avoid compatibility issues
+)
 
 
 @app.command()
